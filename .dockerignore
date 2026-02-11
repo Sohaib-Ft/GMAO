@@ -1,0 +1,15 @@
+vendor
+node_modules
+.env
+.env.*.php
+npm-debug.log
+yarn-error.log
+storage/*.key
+storage/framework/cache/data
+storage/logs
+.DS_Store
+.git
+.idea
+.vscode
+/tests
+/build
