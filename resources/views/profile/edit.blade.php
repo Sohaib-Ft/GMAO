@@ -53,6 +53,106 @@
 
             <!-- Role Permissions Note -->
         
+            <!-- My Work Orders / Commits Card -->
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+                <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-blue-600 rounded-xl text-white">
+                            <i class='bx bx-list-check text-2xl'></i>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-800">Mes Engagements</h4>
+                            <p class="text-xs text-gray-600">
+                                @if ($user->isEmployee())
+                                    Demandes d'intervention
+                                @elseif ($user->isTechnician())
+                                    Interventions assignées
+                                @else
+                                    Ordres de travail récents
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6">
+                    @if($workOrders->isEmpty())
+                        <div class="text-center py-8">
+                            <i class='bx bx-folder-open text-6xl text-gray-300 mb-3'></i>
+                            <p class="text-gray-500 text-sm">Aucun ordre de travail pour le moment.</p>
+                        </div>
+                    @else
+                        <div class="space-y-3">
+                            @foreach($workOrders as $workOrder)
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition group">
+                                    <div class="flex items-start space-x-3 flex-1">
+                                        <div class="mt-1">
+                                            @if($workOrder->statut === 'terminee')
+                                                <i class='bx bxs-check-circle text-green-500 text-xl'></i>
+                                            @elseif($workOrder->statut === 'en_cours')
+                                                <i class='bx bxs-time-five text-blue-500 text-xl'></i>
+                                            @elseif($workOrder->statut === 'echec')
+                                                <i class='bx bxs-x-circle text-red-500 text-xl'></i>
+                                            @else
+                                                <i class='bx bxs-info-circle text-gray-400 text-xl'></i>
+                                            @endif
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-bold text-gray-800 truncate">{{ $workOrder->titre }}</p>
+                                            <p class="text-xs text-gray-500 truncate">{{ $workOrder->equipement->nom ?? 'N/A' }}</p>
+                                            <div class="flex items-center space-x-2 mt-1">
+                                                @if($workOrder->priorite === 'urgente')
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700">
+                                                        <i class='bx bxs-error text-xs mr-1'></i>Urgente
+                                                    </span>
+                                                @elseif($workOrder->priorite === 'haute')
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-orange-100 text-orange-700">
+                                                        Haute
+                                                    </span>
+                                                @elseif($workOrder->priorite === 'normale')
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-700">
+                                                        Normale
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-gray-100 text-gray-700">
+                                                        Basse
+                                                    </span>
+                                                @endif
+                                                <span class="text-xs text-gray-400">{{ $workOrder->created_at->diffForHumans() }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <a href="
+                                        @if ($user->isEmployee())
+                                            {{ route('employee.workorders.index') }}
+                                        @elseif ($user->isTechnician())
+                                            {{ route('technician.workorders.show', $workOrder) }}
+                                        @else
+                                            {{ route('admin.workorders.show', $workOrder) }}
+                                        @endif
+                                    " class="opacity-0 group-hover:opacity-100 transition p-2 hover:bg-blue-100 rounded-lg">
+                                        <i class='bx bx-right-arrow-alt text-blue-600 text-xl'></i>
+                                    </a>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-100">
+                            <a href="
+                                @if ($user->isEmployee())
+                                    {{ route('employee.workorders.index') }}
+                                @elseif ($user->isTechnician())
+                                    {{ route('technician.workorders.index') }}
+                                @else
+                                    {{ route('admin.workorders.index') }}
+                                @endif
+                            " class="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center justify-center">
+                                Voir tous mes engagements
+                                <i class='bx bx-right-arrow-alt ml-1 text-lg'></i>
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        
         </div>
 
         <!-- Right Column: Forms -->
