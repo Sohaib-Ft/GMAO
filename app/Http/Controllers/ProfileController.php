@@ -17,8 +17,36 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $user = $request->user();
+        
+        // Fetch user's work orders based on their role
+        $workOrders = collect();
+        
+        if ($user->role === 'employe') {
+            // For employees, show work orders they created
+            $workOrders = $user->employeWorkOrders()
+                ->with(['equipement', 'technicien'])
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get();
+        } elseif ($user->role === 'technicien' || $user->role === 'technician') {
+            // For technicians, show work orders assigned to them
+            $workOrders = $user->technicienWorkOrders()
+                ->with(['equipement', 'employe'])
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get();
+        } elseif ($user->role === 'admin') {
+            // For admins, show recent work orders (all)
+            $workOrders = \App\Models\WorkOrder::with(['equipement', 'employe', 'technicien'])
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get();
+        }
+        
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $user,
+            'workOrders' => $workOrders,
         ]);
     }
 
