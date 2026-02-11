@@ -1,363 +1,378 @@
 @extends('layouts.app')
 
 @section('title', 'Admin Dashboard')
-@section('header', 'Tableau de Bord Administrateur')
+
 
 @section('content')
-<div class="space-y-6">
-    <!-- Grid Statistiques -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Total Utilisateurs -->
-        <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center space-x-4">
-            <div class="h-14 w-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
-                <i class='bx bx-group text-2xl'></i>
-            </div>
-            <div>
-                <p class="text-sm font-medium text-gray-500">Total Utilisateurs</p>
-                <p class="text-2xl font-bold text-gray-900"><span id="totalUsersCounter" data-target="{{ $stats['total_users'] }}">0</span></p>
-            </div>
+<div class="space-y-8">
+    <!-- 1. Header Section (Date on Right) -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+            <h1 class="text-3xl font-black text-gray-900 tracking-tight">Bonjour, {{ Auth::user()->name }} 👋</h1>
+            <p class="text-gray-500 font-medium">Vue d'ensemble de la maintenance et des performances du système.</p>
         </div>
-
-        <!-- Techniciens -->
-        <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center space-x-4">
-            <div class="h-14 w-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center">
-                <i class='bx bx-wrench text-2xl'></i>
-            </div>
-            <div>
-                <p class="text-sm font-medium text-gray-500">Techniciens</p>
-                <p class="text-2xl font-bold text-gray-900"><span id="techniciansCounter" data-target="{{ $stats['technicians_count'] }}">0</span></p>
-            </div>
-        </div>
-
-        <!-- Utilisateurs Standards -->
-        <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center space-x-4">
-            <div class="h-14 w-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
-                <i class='bx bx-user text-2xl'></i>
-            </div>
-            <div>
-                <p class="text-sm font-medium text-gray-500">Utilisateurs Standards</p>
-                <p class="text-2xl font-bold text-gray-900"><span id="standardUsersCounter" data-target="{{ $stats['standard_users_count'] }}">0</span></p>
-            </div>
-        </div>
-
-        <!-- Total Équipements -->
-        <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center space-x-4">
-            <div class="h-14 w-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center">
-                <i class='bx bx-box text-2xl'></i>
-            </div>
-            <div>
-                <p class="text-sm font-medium text-gray-500">Équipements</p>
-                <p class="text-2xl font-bold text-gray-900"><span id="equipmentsCounter" data-target="{{ $stats['equipments_count'] }}">0</span></p>
-            </div>
-        </div>
-
-        <!-- Top Technicien -->
-        <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center space-x-4">
-            <div class="h-14 w-14 bg-sky-50 text-sky-600 rounded-2xl flex items-center justify-center">
-                <i class='bx bx-user-check text-2xl'></i>
-            </div>
-            <div>
-                <p class="text-sm font-medium text-gray-500">Top Technicien</p>
-                <p class="text-lg font-semibold text-gray-900">{{ $stats['top_technician']->name ?? 'N/A' }}</p>
-                <p class="text-2xl font-bold text-gray-900"><span id="topTechnicianCounter" data-target="{{ $stats['top_technician']->technicien_work_orders_count ?? 0 }}">0</span> <span class="text-sm font-normal text-gray-500">interventions</span></p>
-            </div>
-        </div>
-
-        <!-- Top Équipement -->
-        <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center space-x-4">
-            <div class="h-14 w-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center">
-                <i class='bx bxs-hot text-2xl'></i>
-            </div>
-            <div>
-                <p class="text-sm font-medium text-gray-500">Équipement le plus Réclamé</p>
-                <p class="text-lg font-semibold text-gray-900">{{ $stats['most_claimed_equipment']->nom ?? 'N/A' }}</p>
-                <p class="text-2xl font-bold text-gray-900"><span id="topEquipmentCounter" data-target="{{ $stats['most_claimed_equipment']->work_orders_count ?? 0 }}">0</span> <span class="text-sm font-normal text-gray-500">demandes</span></p>
-            </div>
-        </div>
-
-        <!-- Top Demandeur -->
-        <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center space-x-4">
-            <div class="h-14 w-14 bg-fuchsia-50 text-fuchsia-600 rounded-2xl flex items-center justify-center">
-                <i class='bx bxs-megaphone text-2xl'></i>
-            </div>
-            <div>
-                <p class="text-sm font-medium text-gray-500">Top Demandeur</p>
-                <p class="text-lg font-semibold text-gray-900">{{ $stats['top_claimant']->name ?? 'N/A' }}</p>
-                <p class="text-2xl font-bold text-gray-900"><span id="topClaimantCounter" data-target="{{ $stats['top_claimant']->employe_work_orders_count ?? 0 }}">0</span> <span class="text-sm font-normal text-gray-500">demandes</span></p>
-            </div>
+        
+        <div class="bg-white px-5 py-2.5 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-3 text-gray-700 w-fit shrink-0">
+            <i class='bx bx-calendar text-blue-600 text-xl'></i>
+            <span class="text-sm font-bold uppercase tracking-tight">{{ now()->translatedFormat('d F Y') }}</span>
         </div>
     </div>
 
-    <!-- Alertes de Maintenance -->
+    <!-- 1. Grid Statistiques (Style Employé) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Total Utilisateurs -->
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition group text-center md:text-left">
+            <div class="flex items-center justify-between mb-4">
+                <div class="h-12 w-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors mx-auto md:mx-0">
+                    <i class='bx bx-group text-2xl'></i>
+                </div>
+                <span class="hidden md:block text-xs font-bold text-gray-400 uppercase tracking-widestAlpha">Utilisateurs</span>
+            </div>
+            <div class="text-3xl font-bold text-gray-900 leading-none"><span id="totalUsersCounter" data-target="{{ $stats['total_users'] }}">0</span></div>
+            <div class="md:hidden text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Total Utilisateurs</div>
+        </div>
+
+        <!-- Techniciens -->
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition group text-center md:text-left">
+            <div class="flex items-center justify-between mb-4">
+                <div class="h-12 w-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors mx-auto md:mx-0">
+                    <i class='bx bx-wrench text-2xl'></i>
+                </div>
+                <span class="hidden md:block text-xs font-bold text-indigo-400 uppercase tracking-widest">Equipe</span>
+            </div>
+            <div class="text-3xl font-bold text-gray-900 leading-none"><span id="techniciansCounter" data-target="{{ $stats['technicians_count'] }}">0</span></div>
+             <div class="md:hidden text-[10px] font-bold text-indigo-400 uppercase tracking-widest mt-1">Techniciens</div>
+        </div>
+
+        <!-- Utilisateurs Standards -->
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition group text-center md:text-left">
+            <div class="flex items-center justify-between mb-4">
+                <div class="h-12 w-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors mx-auto md:mx-0">
+                    <i class='bx bx-user text-2xl'></i>
+                </div>
+                <span class="hidden md:block text-xs font-bold text-emerald-400 uppercase tracking-widest">Employés</span>
+            </div>
+            <div class="text-3xl font-bold text-gray-900 leading-none"><span id="standardUsersCounter" data-target="{{ $stats['standard_users_count'] }}">0</span></div>
+             <div class="md:hidden text-[10px] font-bold text-emerald-400 uppercase tracking-widest mt-1">Employés</div>
+        </div>
+
+        <!-- Total Équipements -->
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition group text-center md:text-left">
+            <div class="flex items-center justify-between mb-4">
+                <div class="h-12 w-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-colors mx-auto md:mx-0">
+                    <i class='bx bx-box text-2xl'></i>
+                </div>
+                <span class="hidden md:block text-xs font-bold text-amber-400 uppercase tracking-widest">Équipements</span>
+            </div>
+            <div class="text-3xl font-bold text-gray-900 leading-none"><span id="equipmentsCounter" data-target="{{ $stats['equipments_count'] }}">0</span></div>
+             <div class="md:hidden text-[10px] font-bold text-amber-400 uppercase tracking-widest mt-1">Équipements</div>
+        </div>
+    </div>
+
+    <!-- 2. Alertes de Maintenance (Pleine Largeur) -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Demandes en Attente -->
-        <div class="bg-gradient-to-br from-orange-50 to-white p-6 rounded-3xl shadow-sm border border-orange-100">
+        <div class="bg-white p-6 rounded-3xl border border-orange-100 shadow-sm hover:shadow-md transition group border-l-4 border-l-orange-500">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-orange-600 mb-1">Demandes en Attente</p>
+                    <p class="text-xs font-bold text-orange-600 uppercase tracking-widest mb-1">En Attente</p>
                     <p class="text-3xl font-bold text-gray-900"><span id="pendingRequestsCounter" data-target="{{ $stats['pending_requests'] }}">0</span></p>
-                    <p class="text-xs text-gray-500 mt-1">Nouvelles tâches non traitées</p>
+                    <p class="text-xs text-gray-500 mt-1 font-medium">Nouvelles tâches</p>
                 </div>
-                <div class="h-16 w-16 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center">
+                <div class="h-16 w-16 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center group-hover:bg-orange-600 group-hover:text-white transition-colors">
                     <i class='bx bx-time-five text-3xl'></i>
                 </div>
             </div>
         </div>
 
         <!-- Tâches en Cours -->
-        <div class="bg-gradient-to-br from-blue-50 to-white p-6 rounded-3xl shadow-sm border border-blue-100">
+        <div class="bg-white p-6 rounded-3xl border border-blue-100 shadow-sm hover:shadow-md transition group border-l-4 border-l-blue-500">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-blue-600 mb-1">Tâches en Cours</p>
+                    <p class="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">En Cours</p>
                     <p class="text-3xl font-bold text-gray-900"><span id="tasksInProgressCounter" data-target="{{ $stats['tasks_in_progress'] }}">0</span></p>
-                    <p class="text-xs text-gray-500 mt-1">Interventions actives</p>
+                    <p class="text-xs text-gray-500 mt-1 font-medium">Interventions actives</p>
                 </div>
-                <div class="h-16 w-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center">
+                <div class="h-16 w-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
                     <i class='bx bx-loader-alt text-3xl'></i>
                 </div>
             </div>
         </div>
 
         <!-- Pannes Critiques -->
-        <div class="bg-gradient-to-br from-red-50 to-white p-6 rounded-3xl shadow-sm border border-red-100">
+        <div class="bg-white p-6 rounded-3xl border border-red-100 shadow-sm hover:shadow-md transition group border-l-4 border-l-red-500">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-red-600 mb-1">Pannes Critiques</p>
+                    <p class="text-xs font-bold text-red-600 uppercase tracking-widest mb-1">Critique</p>
                     <p class="text-3xl font-bold text-gray-900"><span id="criticalFailuresCounter" data-target="{{ $stats['critical_failures'] }}">0</span></p>
-                    <p class="text-xs text-gray-500 mt-1">Priorité urgente</p>
+                    <p class="text-xs text-gray-500 mt-1 font-medium">Priorité urgente</p>
                 </div>
-                <div class="h-16 w-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center">
+                <div class="h-16 w-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-colors">
                     <i class='bx bx-error text-3xl'></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Graphiques de Performance -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Interventions par Mois -->
-        <div class="bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6 rounded-3xl shadow-lg border border-blue-100 hover:shadow-xl transition-shadow duration-300">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-900">Interventions par Mois</h3>
-                    <p class="text-xs text-gray-500 mt-1">Performance mensuelle</p>
+     <!-- 4. Leaders Grid (Pleine Largeur) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Top Technicien -->
+        <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm group hover:translate-y-[-2px] transition-transform duration-300">
+            <div class="flex items-center gap-4">
+                <div class="h-11 w-11 bg-sky-50 text-sky-600 rounded-2xl flex items-center justify-center text-xl group-hover:bg-sky-600 group-hover:text-white transition-colors">
+                    <i class='bx bx-user-check'></i>
                 </div>
-                <div class="h-12 w-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center">
-                    <i class='bx bx-line-chart text-2xl'></i>
+                <div class="flex-1">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Technicien Top</p>
+                    <p class="font-bold text-gray-900 leading-tight leading-tight">{{ $stats['top_technician']->name ?? 'N/A' }}</p>
+                </div>
+                <div class="text-right">
+                     <span class="text-sm font-bold text-sky-600" id="topTechnicianCounter" data-target="{{ $stats['top_technician']->technicien_work_orders_count ?? 0 }}">0</span>
                 </div>
             </div>
-            <div class="h-64 bg-white/50 rounded-2xl p-4">
+        </div>
+
+        <!-- Top Équipement -->
+        <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm group hover:translate-y-[-2px] transition-transform duration-300">
+            <div class="flex items-center gap-4">
+                <div class="h-11 w-11 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center text-xl group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                    <i class='bx bxs-hot'></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Équipement Critique</p>
+                    <p class="font-bold text-gray-900 leading-tight leading-tight">{{ $stats['most_claimed_equipment']->nom ?? 'N/A' }}</p>
+                </div>
+                <div class="text-right">
+                     <span class="text-sm font-bold text-rose-600" id="topEquipmentCounter" data-target="{{ $stats['most_claimed_equipment']->work_orders_count ?? 0 }}">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Demandeur -->
+        <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm group hover:translate-y-[-2px] transition-transform duration-300">
+            <div class="flex items-center gap-4">
+                <div class="h-11 w-11 bg-fuchsia-50 text-fuchsia-600 rounded-2xl flex items-center justify-center text-xl group-hover:bg-fuchsia-600 group-hover:text-white transition-colors">
+                    <i class='bx bxs-megaphone'></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Top Demandeur</p>
+                    <p class="font-bold text-gray-900 leading-tight leading-tight">{{ $stats['top_claimant']->name ?? 'N/A' }}</p>
+                </div>
+                <div class="text-right">
+                     <span class="text-sm font-bold text-fuchsia-600" id="topClaimantCounter" data-target="{{ $stats['top_claimant']->employe_work_orders_count ?? 0 }}">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Graphiques de Performance (Pleine Largeur) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Interventions par Mois -->
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition duration-300">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <i class='bx bx-line-chart text-blue-600'></i>
+                        Interventions Mensuelles
+                    </h3>
+                    <p class="text-xs text-gray-500 font-medium mt-1">Performance sur {{ date('Y') }}</p>
+                </div>
+            </div>
+            <div class="h-64">
                 <canvas id="monthlyChart"></canvas>
             </div>
         </div>
 
         <!-- Répartition des Statuts -->
-        <div class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6 rounded-3xl shadow-lg border border-indigo-100 hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition duration-300">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <h3 class="text-lg font-bold text-gray-900">Répartition des Statuts</h3>
-                    <p class="text-xs text-gray-500 mt-1">Distribution des tâches</p>
-                </div>
-                <div class="h-12 w-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center">
-                    <i class='bx bx-pie-chart-alt-2 text-2xl'></i>
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <i class='bx bx-pie-chart-alt-2 text-indigo-600'></i>
+                        Répartition des Statuts
+                    </h3>
+                    <p class="text-xs text-gray-500 font-medium mt-1">État global des demandes</p>
                 </div>
             </div>
-            <div class="h-64 bg-white/50 rounded-2xl p-4">
+            <div class="h-64">
                 <canvas id="statusChart"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- Tableau des Demandes Récentes -->
-    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="p-6 border-b border-gray-100">
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-900">Demandes Récentes</h3>
-                <span class="text-sm text-gray-500">5 dernières interventions</span>
+   
+
+    <!-- 5. Section Basse : Tableau & Profil (Cote à Cote) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Tableau des Activités (Large) -->
+        <div class="lg:col-span-2 space-y-4">
+            <div class="flex items-center justify-between px-2">
+                <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <i class='bx bx-history text-blue-600'></i>
+                    Dernières Activités
+                </h2>
+                <a href="{{ route('admin.workorders.index') }}" class="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-100 rounded-xl text-xs font-bold text-blue-600 hover:bg-gray-50 hover:text-blue-700 transition shadow-sm">
+                    <i class='bx bx-list-ul text-sm'></i>
+                    Voir tout
+                </a>
+            </div>
+
+            <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-gray-50/50">
+                                <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest uppercase tracking-widest">Employé</th>
+                                <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest uppercase tracking-widest text-center">Statut</th>
+                                <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            @forelse($recentRequests as $request)
+                            <tr class="hover:bg-gray-50/50 transition-colors group">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="h-8 w-8 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
+                                            {{ substr(strtoupper($request->employe->name ?? 'N/A'), 0, 2) }}
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{{ $request->employe->name ?? 'N/A' }}</p>
+                                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest uppercase tracking-widest">{{ $request->equipement->nom ?? 'N/A' }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    @php
+                                        $statusClasses = [
+                                            'nouvelle' => 'bg-blue-100 text-blue-800',
+                                            'affectee' => 'bg-purple-100 text-purple-800',
+                                            'en_cours' => 'bg-indigo-100 text-indigo-800',
+                                            'terminee' => 'bg-green-100 text-green-800',
+                                            'annulee' => 'bg-gray-100 text-gray-800',
+                                        ];
+                                    @endphp
+                                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider {{ $statusClasses[$request->statut] ?? 'bg-gray-100 text-gray-800' }}">
+                                        {{ str_replace('_', ' ', $request->statut) }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="text-sm font-bold text-gray-900 leading-tight font-bold">{{ $request->created_at->format('d M') }}</div>
+                                    <div class="text-[10px] text-gray-400 font-medium font-medium">{{ $request->created_at->format('H:i') }}</div>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="3" class="px-6 py-12 text-center opacity-40">
+                                    <p class="text-sm font-bold text-gray-400 uppercase tracking-widest uppercase tracking-widest">Aucune donnée récente</p>
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50 border-b border-gray-100">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employé</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Équipement</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Technicien</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priorité</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-100">
-                    @forelse($recentRequests as $request)
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="h-8 w-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium">
-                                    {{ substr(strtoupper($request->employe->name ?? 'N/A'), 0, 2) }}
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm font-medium text-gray-900">{{ $request->employe->name ?? 'Non assigné' }}</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <p class="text-sm text-gray-900">{{ $request->equipement->nom ?? 'N/A' }}</p>
-                            <p class="text-xs text-gray-500">{{ $request->equipement->code_actif ?? '' }}</p>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <p class="text-sm text-gray-900">{{ $request->technicien->name ?? 'Non assigné' }}</p>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            @php
-                                $priorityClasses = [
-                                    'basse' => 'bg-green-100 text-green-800',
-                                    'moyenne' => 'bg-yellow-100 text-yellow-800',
-                                    'haute' => 'bg-red-100 text-red-800',
-                                ];
-                            @endphp
-                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $priorityClasses[$request->priorite] ?? 'bg-gray-100 text-gray-800' }}">
-                                {{ ucfirst($request->priorite) }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            @php
-                                $statusClasses = [
-                                    'nouvelle' => 'bg-blue-100 text-blue-800',
-                                    'affectee' => 'bg-purple-100 text-purple-800',
-                                    'en_cours' => 'bg-indigo-100 text-indigo-800',
-                                    'terminee' => 'bg-green-100 text-green-800',
-                                    'annulee' => 'bg-gray-100 text-gray-800',
-                                ];
-                            @endphp
-                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusClasses[$request->statut] ?? 'bg-gray-100 text-gray-800' }}">
-                                {{ ucfirst(str_replace('_', ' ', $request->statut)) }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $request->created_at->format('d/m/Y H:i') }}
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                            <i class='bx bx-info-circle text-3xl mb-2'></i>
-                            <p>Aucune demande récente</p>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+
+        <!-- Profil Overview (À côté du tableau) -->
+        <div class="space-y-6 lg:mt-11">
+            <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm border-t-4 border-t-blue-600">
+                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Administrateur</h3>
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="h-14 w-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+                        <i class='bx bxs-user-circle text-4xl'></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-gray-900 text-lg leading-tight uppercase">{{ Auth::user()->name }}</div>
+                        <div class="text-xs text-gray-500 font-medium">{{ Auth::user()->email }}</div>
+                    </div>
+                </div>
+                <div class="pt-4 border-t border-gray-50 space-y-3">
+                     <div class="flex items-center justify-between text-xs">
+                        <span class="text-gray-400 font-bold uppercase uppercase tracking-widest"></span>
+                        <span class="font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-0.5 rounded-md"> AdminISTRATEUR</span>
+                     </div>
+                </div>
+            </div>
+            
+            <!-- Quick Link / Shortcut -->
+
         </div>
     </div>
-    
 </div>
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-    // Configuration commune
-    const commonOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: true,
-                position: 'bottom',
-            }
-        }
-    };
-
-    // Graphique des Interventions Mensuelles
-    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-    const monthlyData = @json($monthlyInterventions);
-    
-    new Chart(monthlyCtx, {
-        type: 'bar',
-        data: {
-            labels: monthlyData.map(item => item.month),
-            datasets: [{
-                label: 'Interventions Terminées',
-                data: monthlyData.map(item => item.count),
-                backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                borderColor: 'rgba(59, 130, 246, 1)',
-                borderWidth: 2,
-                borderRadius: 8,
-            }]
-        },
-        options: {
-            ...commonOptions,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
+    document.addEventListener('DOMContentLoaded', function() {
+        // Graphique Mensuel
+        const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+        const monthlyData = @json($monthlyInterventions);
+        new Chart(monthlyCtx, {
+            type: 'bar',
+            data: {
+                labels: monthlyData.map(item => item.month),
+                datasets: [{
+                    label: 'Interventions',
+                    data: monthlyData.map(item => item.count),
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1, font: { weight: '600' }, color: '#9ca3af' } },
+                    x: { grid: { display: false }, ticks: { font: { weight: '600' }, color: '#9ca3af' } }
                 }
             }
-        }
-    });
+        });
 
-    // Graphique de Répartition des Statuts
-    const statusCtx = document.getElementById('statusChart').getContext('2d');
-    const statusData = @json($statusDistribution);
-    
-    const statusLabels = {
-        'nouvelle': 'Nouvelle',
-        'affectee': 'Affectée',
-        'en_cours': 'En Cours',
-        'terminee': 'Terminée',
-        'annulee': 'Annulée'
-    };
-    
-    const statusColors = {
-        'nouvelle': 'rgba(59, 130, 246, 0.8)',
-        'affectee': 'rgba(168, 85, 247, 0.8)',
-        'en_cours': 'rgba(99, 102, 241, 0.8)',
-        'terminee': 'rgba(16, 185, 129, 0.8)',
-        'annulee': 'rgba(107, 114, 128, 0.8)'
-    };
-    
-    new Chart(statusCtx, {
-        type: 'doughnut',
-        data: {
-            labels: statusData.map(item => statusLabels[item.statut] || item.statut),
-            datasets: [{
-                data: statusData.map(item => item.count),
-                backgroundColor: statusData.map(item => statusColors[item.statut] || 'rgba(156, 163, 175, 0.8)'),
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            ...commonOptions,
-            cutout: '60%',
-        }
-    });
-
-    // Compteurs animés pour toutes les cartes
-    const counters = document.querySelectorAll('[data-target]');
-    console.log('Compteurs trouvés:', counters.length);
-    
-    counters.forEach(counter => {
-        const target = parseInt(counter.getAttribute('data-target')) || 0;
-        console.log('Compteur ID:', counter.id, 'Target:', target);
-        const duration = 800; // durée en ms
-        const startTime = performance.now();
-
-        function update(now) {
-            const elapsed = now - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const value = Math.floor(progress * target);
-            counter.textContent = value;
-            if (progress < 1) {
-                requestAnimationFrame(update);
-            } else {
-                counter.textContent = target;
+        // Graphique Statuts
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        const statusData = @json($statusDistribution);
+        const statusColors = {
+            'nouvelle': '#3b82f6',
+            'affectee': '#a855f7',
+            'en_cours': '#6366f1',
+            'terminee': '#10b981',
+            'annulee': '#6b7280'
+        };
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: statusData.map(item => item.statut),
+                datasets: [{
+                    data: statusData.map(item => item.count),
+                    backgroundColor: statusData.map(item => statusColors[item.statut] || '#e5e7eb'),
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, font: { weight: '600' } } } }
             }
-        }
+        });
 
-        requestAnimationFrame(update);
+        // Compteurs animés
+        const counters = document.querySelectorAll('[data-target]');
+        counters.forEach(counter => {
+            const target = parseInt(counter.getAttribute('data-target')) || 0;
+            const duration = 1000;
+            const startTime = performance.now();
+            function update(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                counter.textContent = Math.floor(progress * target);
+                if (progress < 1) requestAnimationFrame(update);
+                else counter.textContent = target;
+            }
+            requestAnimationFrame(update);
+        });
     });
 </script>
 @endpush

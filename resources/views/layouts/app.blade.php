@@ -60,8 +60,6 @@
     Mon Espace
 </div>
 
-
-
         <!-- Utilisateurs - Tous les rôles -->
         <a href="{{ 
             Auth::user()->role === 'admin' ? route('users.index') : 
@@ -117,12 +115,6 @@
             <i class="bx bx-clipboard text-xl mr-3"></i>
             <span x-show="sidebarOpen">Work Orders</span>
         </a>
-
-     
-
-
-      
-     
 
         <div x-show="sidebarOpen" class="pt-4 text-[10px] text-gray-400 uppercase tracking-widest">
             Compte

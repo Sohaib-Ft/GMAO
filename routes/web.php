@@ -147,9 +147,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::middleware(['role:employe'])->group(function () {
-        Route::get('/dashboard/employe', function () {
-            return view('dashboards.employe');
-        })->name('dashboard.employe');
+        Route::get('/dashboard/employe', [\App\Http\Controllers\Employee\DashboardController::class, 'index'])->name('dashboard.employe');
 
         // Employe: Vue lecture seule des utilisateurs
         Route::get('/employee/users', [\App\Http\Controllers\Employee\UserController::class, 'index'])->name('employee.users.index');

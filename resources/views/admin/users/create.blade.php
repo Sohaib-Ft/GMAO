@@ -61,7 +61,7 @@
                 <select name="role" class="pl-10 block w-full rounded-xl border-gray-300 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 transition-all" required>
                     <option value="" disabled selected>Sélectionner un rôle</option>
                     <option value="technicien" {{ old('role')=='technicien'?'selected':'' }}>Technicien de maintenance</option>
-                    <option value="employe" {{ old('role')=='employe'?'selected':'' }}>Utilisateur standard</option>
+                    <option value="employe" {{ old('role')=='employe'?'selected':'' }}>Employe</option>
                     <option value="admin" {{ old('role')=='admin'?'selected':'' }}>Administrateur</option>
                 </select>
             </div>

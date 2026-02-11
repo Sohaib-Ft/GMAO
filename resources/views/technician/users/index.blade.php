@@ -53,7 +53,6 @@
                     <tr>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Utilisateur</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Rôle</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Département</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Statut</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Profil</th>
                     </tr>
@@ -76,9 +75,7 @@
                                 {{ ucfirst($user->role) }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-gray-600">
-                            {{ $user->departement->nom ?? 'N/A' }}
-                        </td>
+                        
                         <td class="px-6 py-4">
                             <span class="px-3 py-1 rounded-full text-xs font-bold
                                 {{ $user->is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">

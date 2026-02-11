@@ -57,7 +57,7 @@
                         class="w-full text-sm border-none bg-gray-50 rounded-lg focus:ring-0 cursor-pointer hover:bg-gray-100 transition">
                         <option value="">Tous les rôles</option>
                         <option value="technicien" {{ request('role') == 'technicien' ? 'selected' : '' }}>Technicien</option>
-                        <option value="employe" {{ request('role') == 'employe' ? 'selected' : '' }}>Utilisateur standard</option>
+                        <option value="employe" {{ request('role') == 'employe' ? 'selected' : '' }}>Employe</option>
                         <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Administrateur</option>
                     </select>
                 </div>
@@ -105,7 +105,7 @@
                                     $roleLabels = [
                                         'admin' => 'Admin',
                                         'technicien' => 'Technicien',
-                                        'employe' => 'Standard'
+                                        'employe' => 'Employe'
                                     ];
                                     $roleClasses = [
                                         'admin' => 'bg-blue-100 text-blue-800',
@@ -177,9 +177,11 @@
         </div>
         
         <!-- Pagination -->
+        @if($users->hasPages())
         <div class="px-8 py-4 border-t border-gray-100 bg-gray-50">
             {{ $users->appends(request()->query())->links() }}
         </div>
+        @endif
     </div>
 </div>
 
