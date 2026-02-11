@@ -22,21 +22,21 @@ class ProfileController extends Controller
         // Fetch user's work orders based on their role
         $workOrders = collect();
         
-        if ($user->role === 'employe') {
+        if ($user->isEmployee()) {
             // For employees, show work orders they created
             $workOrders = $user->employeWorkOrders()
                 ->with(['equipement', 'technicien'])
                 ->orderBy('created_at', 'desc')
                 ->limit(5)
                 ->get();
-        } elseif ($user->role === 'technicien' || $user->role === 'technician') {
+        } elseif ($user->isTechnician()) {
             // For technicians, show work orders assigned to them
             $workOrders = $user->technicienWorkOrders()
                 ->with(['equipement', 'employe'])
                 ->orderBy('created_at', 'desc')
                 ->limit(5)
                 ->get();
-        } elseif ($user->role === 'admin') {
+        } elseif ($user->isAdmin()) {
             // For admins, show recent work orders (all)
             $workOrders = \App\Models\WorkOrder::with(['equipement', 'employe', 'technicien'])
                 ->orderBy('created_at', 'desc')

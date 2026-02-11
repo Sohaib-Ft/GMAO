@@ -69,4 +69,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(Notification::class);
     }
+
+    // Role helper methods
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isTechnician(): bool
+    {
+        return $this->role === 'technicien' || $this->role === 'technician';
+    }
+
+    public function isEmployee(): bool
+    {
+        return $this->role === 'employe';
+    }
 }

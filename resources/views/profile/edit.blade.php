@@ -63,9 +63,9 @@
                         <div>
                             <h4 class="text-lg font-bold text-gray-800">Mes Engagements</h4>
                             <p class="text-xs text-gray-600">
-                                @if ($user->role === 'employe')
+                                @if ($user->isEmployee())
                                     Demandes d'intervention
-                                @elseif ($user->role === 'technicien' || $user->role === 'technician')
+                                @elseif ($user->isTechnician())
                                     Interventions assignées
                                 @else
                                     Ordres de travail récents
@@ -122,9 +122,9 @@
                                         </div>
                                     </div>
                                     <a href="
-                                        @if ($user->role === 'employe')
+                                        @if ($user->isEmployee())
                                             {{ route('employee.workorders.index') }}
-                                        @elseif ($user->role === 'technicien' || $user->role === 'technician')
+                                        @elseif ($user->isTechnician())
                                             {{ route('technician.workorders.show', $workOrder) }}
                                         @else
                                             {{ route('admin.workorders.show', $workOrder) }}
@@ -137,9 +137,9 @@
                         </div>
                         <div class="mt-4 pt-4 border-t border-gray-100">
                             <a href="
-                                @if ($user->role === 'employe')
+                                @if ($user->isEmployee())
                                     {{ route('employee.workorders.index') }}
-                                @elseif ($user->role === 'technicien' || $user->role === 'technician')
+                                @elseif ($user->isTechnician())
                                     {{ route('technician.workorders.index') }}
                                 @else
                                     {{ route('admin.workorders.index') }}
