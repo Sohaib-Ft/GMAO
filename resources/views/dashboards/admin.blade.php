@@ -69,6 +69,42 @@
         </div>
     </div>
 
+     <!-- 3. Graphiques de Performance (Pleine Largeur) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Interventions par Mois -->
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition duration-300">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <i class='bx bx-line-chart text-blue-600'></i>
+                        Interventions Mensuelles
+                    </h3>
+                    <p class="text-xs text-gray-500 font-medium mt-1">Performance sur {{ date('Y') }}</p>
+                </div>
+            </div>
+            <div class="h-64">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Répartition des Statuts -->
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition duration-300">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <i class='bx bx-pie-chart-alt-2 text-indigo-600'></i>
+                        Répartition des Statuts
+                    </h3>
+                    <p class="text-xs text-gray-500 font-medium mt-1">État global des demandes</p>
+                </div>
+            </div>
+            <div class="h-64">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+
     <!-- 2. Alertes de Maintenance (Pleine Largeur) -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Demandes en Attente -->
@@ -165,41 +201,7 @@
         </div>
     </div>
 
-    <!-- 3. Graphiques de Performance (Pleine Largeur) -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Interventions par Mois -->
-        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition duration-300">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                        <i class='bx bx-line-chart text-blue-600'></i>
-                        Interventions Mensuelles
-                    </h3>
-                    <p class="text-xs text-gray-500 font-medium mt-1">Performance sur {{ date('Y') }}</p>
-                </div>
-            </div>
-            <div class="h-64">
-                <canvas id="monthlyChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Répartition des Statuts -->
-        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition duration-300">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                        <i class='bx bx-pie-chart-alt-2 text-indigo-600'></i>
-                        Répartition des Statuts
-                    </h3>
-                    <p class="text-xs text-gray-500 font-medium mt-1">État global des demandes</p>
-                </div>
-            </div>
-            <div class="h-64">
-                <canvas id="statusChart"></canvas>
-            </div>
-        </div>
-    </div>
-
+   
    
 
     <!-- 5. Section Basse : Tableau & Profil (Cote à Cote) -->
