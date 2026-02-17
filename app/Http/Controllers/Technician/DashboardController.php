@@ -42,6 +42,15 @@ class DashboardController extends Controller
             'completed_count' => $allMyWorkOrders->where('statut', 'terminee')->count(),
             'urgent_count' => $allMyWorkOrders->where('priorite', 'urgente')->where('statut', '!=', 'terminee')->count(),
             'available_count' => $availableTasksCount,
+            'maintenance_due_today' => \App\Models\MaintenancePlan::where('technicien_id', $user->id)
+                ->where('statut', 'actif')
+                ->whereDate('prochaine_date', now())
+                ->count(),
+            'maintenance_upcoming' => \App\Models\MaintenancePlan::where('technicien_id', $user->id)
+                ->where('statut', 'actif')
+                ->where('prochaine_date', '>', now())
+                ->where('prochaine_date', '<=', now()->addDays(7))
+                ->count(),
         ];
 
         // Statistiques mensuelles pour l'année en cours

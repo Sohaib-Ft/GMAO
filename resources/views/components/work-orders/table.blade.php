@@ -76,11 +76,26 @@
                                                         </button>
                                                     </form>
                                                 @elseif($order->statut === 'en_cours')
+                                                    @php
+                                                        $canFinish = true;
+                                                        $deadline = null;
+                                                        if ($order->maintenance_plan_id && $order->maintenancePlan) {
+                                                            $deadline = $order->maintenancePlan->prochaine_date;
+                                                            if ($deadline && $deadline->isFuture()) {
+                                                                $canFinish = false;
+                                                            }
+                                                        }
+                                                    @endphp
                                                     <form action="{{ route('technician.workorders.complete', $order) }}" method="POST">
                                                         @csrf
-                                                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-xl text-xs font-bold hover:bg-green-700 transition shadow-lg shadow-green-100 flex items-center gap-2">
-                                                            <i class='bx bx-check-circle'></i>
+                                                        <button type="submit" 
+                                                            @if(!$canFinish) disabled @endif
+                                                            class="px-4 py-2 {{ $canFinish ? 'bg-green-600 hover:bg-green-700 shadow-green-100' : 'bg-gray-400 cursor-not-allowed' }} text-white rounded-xl text-xs font-bold transition shadow-lg flex items-center gap-2">
+                                                            <i class='bx {{ $canFinish ? 'bx-check-circle' : 'bx-lock-alt' }}'></i>
                                                             Terminer
+                                                            @if(!$canFinish)
+                                                                <span class="text-[9px] opacity-75">({{ $deadline->format('d/m') }})</span>
+                                                            @endif
                                                         </button>
                                                     </form>
                                                     <button type="button" onclick="openIrreparableModal({{ $order->id }}, '{{ addslashes($order->equipement->nom ?? 'cet équipement') }}')" 

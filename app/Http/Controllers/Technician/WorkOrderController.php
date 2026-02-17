@@ -4,11 +4,55 @@ namespace App\Http\Controllers\Technician;
 
 use App\Http\Controllers\Controller;
 use App\Models\WorkOrder;
+use App\Models\Equipement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class WorkOrderController extends Controller
 {
+    /**
+     * Show form to create a new work order.
+     */
+    public function create(Request $request)
+    {
+        $equipments = Equipement::where('statut', 'actif')
+            ->orderBy('nom')
+            ->get();
+            
+        $selectedEquipmentId = $request->get('equipement_id');
+        $maintenancePlanId = $request->get('maintenance_plan_id');
+        $type = $request->get('type', 'corrective');
+
+        return view('technician.workorders.create', compact('equipments', 'selectedEquipmentId', 'maintenancePlanId', 'type'));
+    }
+
+    /**
+     * Store a newly created work order in storage.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'equipement_id' => 'required|exists:equipements,id',
+            'maintenance_plan_id' => 'nullable|exists:maintenance_plans,id',
+            'titre' => 'required|string|max:255',
+            'description' => 'required|string',
+            'priorite' => 'required|in:basse,normale,haute,urgente'
+        ]);
+
+        $workOrder = WorkOrder::create([
+            'technicien_id' => Auth::id(),
+            'equipement_id' => $request->equipement_id,
+            'maintenance_plan_id' => $request->maintenance_plan_id,
+            'titre' => $request->titre,
+            'description' => $request->description,
+            'priorite' => $request->priorite,
+            'statut' => 'en_cours',
+            'date_creation' => now(),
+            'date_debut' => now(),
+        ]);
+
+        return redirect()->route('technician.workorders.index')->with('status', 'L\'ordre de travail a été créé et démarré avec succès.');
+    }
     /**
      * Display a listing of assigned work orders.
      */
@@ -187,9 +231,28 @@ class WorkOrderController extends Controller
             abort(403, 'Cet ordre de travail ne vous est pas assigné.');
         }
 
+        // Enforce deadline check if linked to a maintenance plan
+        if ($workOrder->maintenance_plan_id) {
+            $plan = $workOrder->maintenancePlan;
+            if ($plan && $plan->prochaine_date && $plan->prochaine_date->isFuture()) {
+                return back()->with('error', 'Vous ne pouvez pas terminer cette intervention avant la date d\'échéance prévue (' . $plan->prochaine_date->format('d/m/Y') . ').');
+            }
+        }
+
         $workOrder->update([
             'statut' => 'terminee'
         ]);
+
+        // If linked to a maintenance plan, update the plan dates
+        if ($workOrder->maintenance_plan_id) {
+            $plan = $workOrder->maintenancePlan;
+            if ($plan) {
+                $plan->update([
+                    'derniere_date' => now(),
+                    'prochaine_date' => now()->addDays((int)$plan->interval_jours)
+                ]);
+            }
+        }
 
         // Plus besoin de remettre en actif car il ne change plus (demande utilisateur)
         // if ($workOrder->equipement) {

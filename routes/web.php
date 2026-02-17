@@ -90,6 +90,11 @@ Route::middleware(['auth'])->group(function () {
         // Admin: Settings (Localisations & Equipment Types)
         Route::resource('/admin/localisations', \App\Http\Controllers\Admin\LocalisationController::class)->except(['show', 'create', 'edit']);
         Route::resource('/admin/equipment_types', \App\Http\Controllers\Admin\EquipmentTypeController::class)->except(['show', 'create', 'edit']);
+
+        // Admin: Maintenance Plans
+        Route::resource('/admin/maintenance-plans', \App\Http\Controllers\Admin\MaintenancePlanController::class);
+        Route::get('/api/equipments/search', [\App\Http\Controllers\Admin\MaintenancePlanController::class, 'searchEquipments'])->name('api.equipments.search');
+        Route::get('/api/equipments/{id}', [\App\Http\Controllers\Admin\MaintenancePlanController::class, 'getEquipment']);
     });
 
     Route::middleware(['role:technicien,technician'])->group(function () {
@@ -106,6 +111,8 @@ Route::middleware(['auth'])->group(function () {
         // Technicien: Gestion des interventions (Workflow )
         // Routes de listing (sans paramètres dynamiques)
         Route::get('/technicien/workorders', [\App\Http\Controllers\Technician\WorkOrderController::class, 'index'])->name('technician.workorders.index');
+        Route::get('/technicien/workorders/create', [\App\Http\Controllers\Technician\WorkOrderController::class, 'create'])->name('technician.workorders.create');
+        Route::post('/technicien/workorders', [\App\Http\Controllers\Technician\WorkOrderController::class, 'store'])->name('technician.workorders.store');
         Route::get('/technicien/workorders/available', [\App\Http\Controllers\Technician\WorkOrderController::class, 'available'])->name('technician.workorders.available');
         Route::get('/technicien/workorders/history', [\App\Http\Controllers\Technician\WorkOrderController::class, 'history'])->name('technician.workorders.history');
         
@@ -144,6 +151,10 @@ Route::middleware(['auth'])->group(function () {
 
         // Technicien: Types d'équipements (lecture seule)
         Route::get('/technicien/equipment_types', [\App\Http\Controllers\Technician\EquipmentTypeController::class, 'index'])->name('technician.equipment_types.index');
+
+        // Technicien: Maintenance Plans
+        Route::get('/technicien/maintenance-plans', [\App\Http\Controllers\Technician\MaintenancePlanController::class, 'index'])->name('technician.maintenance-plans.index');
+        Route::post('/technicien/maintenance-plans/{maintenancePlan}/start', [\App\Http\Controllers\Technician\MaintenancePlanController::class, 'start'])->name('technician.maintenance-plans.start');
     });
 
     Route::middleware(['role:employe'])->group(function () {

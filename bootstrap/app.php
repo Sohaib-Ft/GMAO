@@ -17,5 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
+    })
+    ->withSchedule(function ($schedule) {
+        $schedule->command('workorders:reset-stale')->hourly();
+        $schedule->command('maintenance:send-notifications')->dailyAt('08:00');
     })->create();
 

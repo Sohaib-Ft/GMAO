@@ -18,7 +18,7 @@
     </div>
 
      <!-- 3. Stats Grid (Pleine Largeur) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         <!-- À faire -->
         <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition group text-center md:text-left">
             <div class="flex items-center justify-between mb-4">
@@ -65,6 +65,23 @@
             </div>
             <div class="text-2xl font-bold text-gray-900 leading-none">{{ $avgTaskDuration }}</div>
             <p class="md:hidden text-[10px] font-bold text-amber-500 uppercase tracking-widest mt-1">Temps Moyen</p>
+        </div>
+
+        <!-- Maintenance du Jour -->
+        <div class="bg-white p-6 rounded-3xl border border-purple-100 shadow-sm hover:shadow-md transition group text-center md:text-left border-l-4 border-l-purple-500">
+            <div class="flex items-center justify-between mb-4">
+                <div class="h-11 w-11 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors mx-auto md:mx-0">
+                    <i class='bx bx-calendar-check text-2xl'></i>
+                </div>
+                <span class="hidden md:block text-[10px] font-bold text-purple-500 uppercase tracking-widest">Préventif</span>
+            </div>
+            <div class="text-2xl font-bold text-gray-900 leading-none">
+                <span data-target="{{ $stats['maintenance_due_today'] }}">0</span>
+            </div>
+            <p class="md:hidden text-[10px] font-bold text-purple-500 uppercase tracking-widest mt-1">À faire</p>
+            @if($stats['maintenance_upcoming'] > 0)
+                <p class="text-[10px] text-gray-400 mt-2 font-medium">+{{ $stats['maintenance_upcoming'] }} à venir (7j)</p>
+            @endif
         </div>
     </div>
 

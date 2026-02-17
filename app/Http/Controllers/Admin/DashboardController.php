@@ -44,6 +44,9 @@ class DashboardController extends Controller
                 ->withCount('technicienWorkOrders')
                 ->orderBy('technicien_work_orders_count', 'desc')
                 ->first(),
+            'maintenance_plans_count' => \App\Models\MaintenancePlan::where('statut', 'actif')->count(),
+            'maintenance_due_today' => \App\Models\MaintenancePlan::where('statut', 'actif')->whereDate('prochaine_date', now())->count(),
+            'maintenance_overdue' => \App\Models\MaintenancePlan::where('statut', 'actif')->whereDate('prochaine_date', '<', now())->count(),
         ];
 
         // Dernières demandes de maintenance

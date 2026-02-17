@@ -38,6 +38,11 @@ class Equipement extends Model
         return $this->hasMany(WorkOrder::class, 'equipement_id');
     }
 
+    public function maintenancePlans()
+    {
+        return $this->hasMany(MaintenancePlan::class, 'equipement_id');
+    }
+
     public function responsable()
     {
         return $this->belongsTo(User::class, 'responsable_id');

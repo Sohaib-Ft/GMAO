@@ -7,7 +7,7 @@
 <div class="space-y-8">
     <!-- 1. Header Section (Date on Right) -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
+        <div class="mx-auto text-center md:mx-0 md:text-left">
             <h1 class="text-3xl font-black text-gray-900 tracking-tight">Bonjour, {{ Auth::user()->name }} 👋</h1>
             <p class="text-gray-500 font-medium">Vue d'ensemble de la maintenance et des performances du système.</p>
         </div>
@@ -19,7 +19,7 @@
     </div>
 
     <!-- 1. Grid Statistiques (Style Employé) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <!-- Total Utilisateurs -->
         <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition group text-center md:text-left">
             <div class="flex items-center justify-between mb-4">
@@ -67,6 +67,18 @@
             <div class="text-3xl font-bold text-gray-900 leading-none"><span id="equipmentsCounter" data-target="{{ $stats['equipments_count'] }}">0</span></div>
              <div class="md:hidden text-[10px] font-bold text-amber-400 uppercase tracking-widest mt-1">Équipements</div>
         </div>
+
+        <!-- Total Plans de Maintenance -->
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition group text-center md:text-left">
+            <div class="flex items-center justify-between mb-4">
+                <div class="h-12 w-12 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors mx-auto md:mx-0">
+                    <i class='bx bx-calendar-edit text-2xl'></i>
+                </div>
+                <span class="hidden md:block text-xs font-bold text-purple-400 uppercase tracking-widest">Préventif</span>
+            </div>
+            <div class="text-3xl font-bold text-gray-900 leading-none"><span id="maintenancePlansCounter" data-target="{{ $stats['maintenance_plans_count'] }}">0</span></div>
+             <div class="md:hidden text-[10px] font-bold text-purple-400 uppercase tracking-widest mt-1">Plans</div>
+        </div>
     </div>
 
      <!-- 3. Graphiques de Performance (Pleine Largeur) -->
@@ -106,7 +118,7 @@
 
 
     <!-- 2. Alertes de Maintenance (Pleine Largeur) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Demandes en Attente -->
         <div class="bg-white p-6 rounded-3xl border border-orange-100 shadow-sm hover:shadow-md transition group border-l-4 border-l-orange-500">
             <div class="flex items-center justify-between">
@@ -145,6 +157,27 @@
                 </div>
                 <div class="h-16 w-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-colors">
                     <i class='bx bx-error text-3xl'></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Maintenance Préventive (Due Today) -->
+        <div class="bg-white p-6 rounded-3xl border border-purple-100 shadow-sm hover:shadow-md transition group border-l-4 border-l-purple-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-bold text-purple-600 uppercase tracking-widest mb-1">Préventif Jour</p>
+                    <div class="flex items-baseline gap-2">
+                        <p class="text-3xl font-bold text-gray-900"><span id="maintenanceDueCounter" data-target="{{ $stats['maintenance_due_today'] }}">0</span></p>
+                        @if($stats['maintenance_overdue'] > 0)
+                            <span class="text-xs font-bold text-red-500 bg-red-50 px-2 py-1 rounded-lg">
+                                {{ $stats['maintenance_overdue'] }}!
+                            </span>
+                        @endif
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1 font-medium">À faire aujourd'hui</p>
+                </div>
+                <div class="h-16 w-16 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                    <i class='bx bx-calendar-event text-3xl'></i>
                 </div>
             </div>
         </div>
@@ -246,15 +279,21 @@
                                 <td class="px-6 py-4 text-center">
                                     @php
                                         $statusClasses = [
-                                            'nouvelle' => 'bg-blue-100 text-blue-800',
-                                            'affectee' => 'bg-purple-100 text-purple-800',
+                                            'en_attente' => $request->technicien_id ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800',
                                             'en_cours' => 'bg-indigo-100 text-indigo-800',
                                             'terminee' => 'bg-green-100 text-green-800',
                                             'annulee' => 'bg-gray-100 text-gray-800',
                                         ];
+                                        
+                                        $statusLabels = [
+                                            'en_attente' => $request->technicien_id ? 'Affectée' : 'En attente',
+                                            'en_cours' => 'En cours',
+                                            'terminee' => 'Terminée',
+                                            'annulee' => 'Annulée',
+                                        ];
                                     @endphp
                                     <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider {{ $statusClasses[$request->statut] ?? 'bg-gray-100 text-gray-800' }}">
-                                        {{ str_replace('_', ' ', $request->statut) }}
+                                        {{ $statusLabels[$request->statut] ?? str_replace('_', ' ', $request->statut) }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-right">

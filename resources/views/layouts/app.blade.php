@@ -102,6 +102,16 @@
                 <span x-show="sidebarOpen">Types des Équipements</span>
             </a>
         @endif
+
+        <!-- Plans de Maintenance - Admin & Technicien -->
+        @if(Auth::user()->role === 'admin' || Auth::user()->role === 'technicien')
+            <a href="{{ Auth::user()->role === 'admin' ? route('maintenance-plans.index') : route('technician.maintenance-plans.index') }}"
+               class="flex items-center px-4 py-3 rounded-xl transition
+               {{ request()->routeIs('maintenance-plans*') || request()->routeIs('technician.maintenance-plans*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
+                <i class="bx bx-calendar-check text-xl mr-3"></i>
+                <span x-show="sidebarOpen">Maintenance préventive</span>
+            </a>
+        @endif
        
 
         <!-- Work Orders - Tous les rôles -->

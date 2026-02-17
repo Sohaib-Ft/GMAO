@@ -11,7 +11,8 @@ class WorkOrder extends Model
     protected $fillable = [
         'employe_id', 'technicien_id', 'equipement_id',
         'titre', 'description', 'priorite', 'statut',
-        'date_creation', 'date_debut', 'date_fin', 'duree'
+        'date_creation', 'date_debut', 'date_fin', 'duree',
+        'maintenance_plan_id'
     ];
 
     // Relations
@@ -28,6 +29,11 @@ class WorkOrder extends Model
     public function equipement()
     {
         return $this->belongsTo(Equipement::class);
+    }
+
+    public function maintenancePlan()
+    {
+        return $this->belongsTo(MaintenancePlan::class);
     }
 
     public function interventions()
