@@ -35,6 +35,56 @@ class DashboardController extends Controller
             ->where('statut', 'en_attente')
             ->count();
 
+        // Maintenance calculations (including RRULE repetitions)
+        $recurrenceService = new \App\Services\RecurrenceService();
+        $maintenancePlans = \App\Models\MaintenancePlan::where('technicien_id', $user->id)
+            ->where('statut', 'actif')
+            ->get();
+
+        $dueToday = 0;
+        $upcomingIn7Days = 0;
+        $upcomingList = [];
+
+        foreach ($maintenancePlans as $plan) {
+            $startDate = $plan->prochaine_date ?: now();
+            $endDate = now()->addDays(7);
+            
+            if ($plan->rrule) {
+                $occurrences = $recurrenceService->getOccurrencesBetween($plan->rrule, $startDate, $endDate);
+                
+                // On compte TOUTES les occurrences pour les stats
+                foreach ($occurrences as $occ) {
+                    if ($occ->isToday()) $dueToday++;
+                    else $upcomingIn7Days++;
+                }
+
+                // Mais on n'ajoute que la TOUTE PREMIÈRE à la liste d'affichage
+                if (!empty($occurrences)) {
+                    $firstOcc = $occurrences[0];
+                    $upcomingList[] = [
+                        'plan' => $plan,
+                        'date' => $firstOcc,
+                        'prochaine_date' => $firstOcc
+                    ];
+                }
+            } elseif ($plan->prochaine_date) {
+                if ($plan->prochaine_date->isToday()) $dueToday++;
+                elseif ($plan->prochaine_date->isFuture() && $plan->prochaine_date <= $endDate) $upcomingIn7Days++;
+
+                if ($plan->prochaine_date >= now()->startOfDay()) {
+                    $upcomingList[] = [
+                        'plan' => $plan,
+                        'date' => $plan->prochaine_date,
+                        'prochaine_date' => $plan->prochaine_date
+                    ];
+                }
+            }
+        }
+
+        // Sort upcoming list and take 5
+        usort($upcomingList, fn($a, $b) => $a['date']->timestamp <=> $b['date']->timestamp);
+        $upcomingMaintenance = collect($upcomingList)->take(5);
+
         // Statistiques
         $stats = [
             'todo_count' => $todoTasks->count(),
@@ -42,15 +92,8 @@ class DashboardController extends Controller
             'completed_count' => $allMyWorkOrders->where('statut', 'terminee')->count(),
             'urgent_count' => $allMyWorkOrders->where('priorite', 'urgente')->where('statut', '!=', 'terminee')->count(),
             'available_count' => $availableTasksCount,
-            'maintenance_due_today' => \App\Models\MaintenancePlan::where('technicien_id', $user->id)
-                ->where('statut', 'actif')
-                ->whereDate('prochaine_date', now())
-                ->count(),
-            'maintenance_upcoming' => \App\Models\MaintenancePlan::where('technicien_id', $user->id)
-                ->where('statut', 'actif')
-                ->where('prochaine_date', '>', now())
-                ->where('prochaine_date', '<=', now()->addDays(7))
-                ->count(),
+            'maintenance_due_today' => $dueToday,
+            'maintenance_upcoming' => $upcomingIn7Days,
         ];
 
         // Statistiques mensuelles pour l'année en cours
@@ -108,6 +151,6 @@ class DashboardController extends Controller
             $avgTaskDuration = '—';
         }
 
-        return view('dashboards.technicien', compact('stats', 'currentTask', 'todoTasks', 'recentMessages', 'monthlyInterventions', 'annualTotal', 'avgTaskDuration'));
+        return view('dashboards.technicien', compact('stats', 'currentTask', 'todoTasks', 'recentMessages', 'monthlyInterventions', 'annualTotal', 'avgTaskDuration', 'upcomingMaintenance'));
     }
 }

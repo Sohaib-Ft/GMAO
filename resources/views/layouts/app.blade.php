@@ -93,15 +93,16 @@
             <span x-show="sidebarOpen">Localisations</span>
         </a>
 
-        <!-- Types des Équipements - Admin & Technicien -->
-        @if(Auth::user()->role === 'admin' || Auth::user()->role === 'technicien')
-            <a href="{{ Auth::user()->role === 'admin' ? route('equipment_types.index') : route('technician.equipment_types.index') }}"
+        <!-- Types des Équipements - Tous les rôles -->
+            <a href="{{ 
+                Auth::user()->role === 'admin' ? route('equipment_types.index') : 
+                (Auth::user()->role === 'technicien' ? route('technician.equipment_types.index') : route('employee.equipment_types.index'))
+            }}"
                class="flex items-center px-4 py-3 rounded-xl transition
-               {{ request()->routeIs('equipment_types*') || request()->routeIs('technician.equipment_types*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
+               {{ request()->routeIs('equipment_types*') || request()->routeIs('technician.equipment_types*') || request()->routeIs('employee.equipment_types*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
                 <i class="bx bx-category text-xl mr-3"></i>
                 <span x-show="sidebarOpen">Types des Équipements</span>
             </a>
-        @endif
 
         <!-- Plans de Maintenance - Admin & Technicien -->
         @if(Auth::user()->role === 'admin' || Auth::user()->role === 'technicien')

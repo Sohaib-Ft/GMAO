@@ -22,8 +22,8 @@
 
     <div class="mb-8 flex items-center justify-between border-b border-gray-100 pb-6">
         <div>
-            <h3 class="text-2xl font-bold text-gray-800">Plan de Maintenance</h3>
-            <p class="text-gray-500 text-sm mt-1">Créez un plan de maintenance préventive ou corrective</p>
+            <h3 class="text-2xl font-bold text-gray-800">Créer un Plan </h3>
+            <p class="text-gray-500 text-sm mt-1">Créez un plan de maintenance préventive pour vos équipements</p>
         </div>
         <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100 text-blue-600">
             <i class='bx bx-calendar-plus text-2xl'></i>
@@ -140,48 +140,33 @@
             </div>
         </div>
 
-        <!-- SECTION 2: TYPE & FRÉQUENCE -->
+        <!-- SECTION 2: RÉCURRENCE RRULE -->
         <div>
             <div class="mb-5 text-blue-600 uppercase text-xs font-bold tracking-widest border-b border-blue-100 pb-2 flex items-center">
-                <i class='bx bx-cog mr-2 text-lg'></i> Configuration
+                <i class='bx bx-sync mr-2 text-lg'></i> Récurrence
+            </div>
+            
+            <x-rrule-generator 
+                name="rrule" 
+                :value="old('rrule', '')"
+                label="Règle de Récurrence (RRULE)"
+                :required="true"
+            />
+
+            @error('rrule') 
+                <p class="text-red-600 text-xs mt-2"><i class='bx bx-error-circle'></i> {{ $message }}</p> 
+            @enderror
+        </div>
+
+        <!-- SECTION 3: TYPE & FRÉQUENCE -->
+        <div>
+            <div class="mb-5 text-blue-600 uppercase text-xs font-bold tracking-widest border-b border-blue-100 pb-2 flex items-center">
+                <i class='bx bx-cog mr-2 text-lg'></i> Configuration Supplémentaire
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Type -->
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">
-                        Type de Maintenance <span class="text-red-500">*</span>
-                    </label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                            <i class='bx bx-category'></i>
-                        </span>
-                        <select name="type" required 
-                            class="pl-10 block w-full rounded-xl border-gray-200 bg-gray-50 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">— Choisir un type —</option>
-                            <option value="preventive" {{ old('type') == 'preventive' ? 'selected' : '' }}>Préventive (Planifiée)</option>
-                            <option value="corrective" {{ old('type') == 'corrective' ? 'selected' : '' }}>Corrective (Suite à panne)</option>
-                        </select>
-                    </div>
-                    @error('type') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                <!-- Interval en jours -->
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">
-                        Intervalle (jours)
-                    </label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                            <i class='bx bx-calendar'></i>
-                        </span>
-                        <input type="number" name="interval_jours" value="{{ old('interval_jours') }}" 
-                            min="1" max="3650" placeholder="Ex: 30"
-                            class="pl-10 block w-full rounded-xl border-gray-200 bg-gray-50 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    @error('interval_jours') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
-                    <p class="text-xs text-gray-500 mt-1">Nombre de jours entre chaque maintenance</p>
-                </div>
+                <!-- Type (Hidden, always Preventive as requested) -->
+                <input type="hidden" name="type" value="preventive">
 
                 <!-- Technicien Assigné -->
                 <div>
@@ -210,47 +195,9 @@
             </div>
         </div>
 
-        <!-- SECTION 3: DATES -->
-        <div>
-            <div class="mb-5 text-blue-600 uppercase text-xs font-bold tracking-widest border-b border-blue-100 pb-2 flex items-center">
-                <i class='bx bx-calendar-event mr-2 text-lg'></i> Planification
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Derniere date -->
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">
-                        Dernière Maintenance Effectuée
-                    </label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                            <i class='bx bx-calendar-check'></i>
-                        </span>
-                        <input type="date" name="derniere_date" value="{{ old('derniere_date') }}" 
-                            max="{{ date('Y-m-d') }}"
-                            class="pl-10 block w-full rounded-xl border-gray-200 bg-gray-50 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    @error('derniere_date') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                <!-- Prochaine date -->
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">
-                        Prochaine Maintenance Prévue
-                    </label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                            <i class='bx bx-calendar-plus'></i>
-                        </span>
-                        <input type="date" name="prochaine_date" value="{{ old('prochaine_date') }}" 
-                            min="{{ date('Y-m-d') }}"
-                            class="pl-10 block w-full rounded-xl border-gray-200 bg-gray-50 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    @error('prochaine_date') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
-                    <p class="text-xs text-gray-500 mt-1">Calculée automatiquement si non spécifiée</p>
-                </div>
-            </div>
-        </div>
+      
+                       
+                  
 
         <!-- Buttons -->
         <div class="flex items-center justify-end pt-6 border-t border-gray-100 space-x-4">
@@ -449,28 +396,6 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => console.error('Error loading equipment:', error));
     @endif
-    // Date calculation logic
-    const intervalInput = document.querySelector('[name="interval_jours"]');
-    const lastDateInput = document.querySelector('[name="derniere_date"]');
-    const nextDateInput = document.querySelector('[name="prochaine_date"]');
-
-    function calculateNextDate() {
-        const lastDate = lastDateInput.value;
-        const interval = parseInt(intervalInput.value);
-
-        if (lastDate && !isNaN(interval)) {
-            const date = new Date(lastDate);
-            date.setDate(date.getDate() + interval);
-            nextDateInput.value = date.toISOString().split('T')[0];
-        } else if (!lastDate && !isNaN(interval)) {
-            // If no last date, maybe use today as starting point for calculation?
-            // For NEW plans, users might want to set next date from today
-            // But let's stay safe and only calculate IF last date is provided
-        }
-    }
-
-    intervalInput.addEventListener('input', calculateNextDate);
-    lastDateInput.addEventListener('change', calculateNextDate);
 });
 </script>
 @endpush

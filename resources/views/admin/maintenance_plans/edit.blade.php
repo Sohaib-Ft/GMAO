@@ -107,48 +107,33 @@
             </div>
         </div>
 
-        <!-- SECTION 2: TYPE & FRÉQUENCE -->
+        <!-- SECTION 2: RÉCURRENCE RRULE -->
         <div>
             <div class="mb-5 text-blue-600 uppercase text-xs font-bold tracking-widest border-b border-blue-100 pb-2 flex items-center">
-                <i class='bx bx-cog mr-2 text-lg'></i> Configuration
+                <i class='bx bx-sync mr-2 text-lg'></i> Récurrence
+            </div>
+            
+            <x-rrule-generator 
+                name="rrule" 
+                :value="old('rrule', $maintenancePlan->rrule)"
+                label="Règle de Récurrence (RRULE)"
+                :required="true"
+            />
+
+            @error('rrule') 
+                <p class="text-red-600 text-xs mt-2"><i class='bx bx-error-circle'></i> {{ $message }}</p> 
+            @enderror
+        </div>
+
+        <!-- SECTION 3: CONFIGURATION SUPPLÉMENTAIRE -->
+        <div>
+            <div class="mb-5 text-blue-600 uppercase text-xs font-bold tracking-widest border-b border-blue-100 pb-2 flex items-center">
+                <i class='bx bx-cog mr-2 text-lg'></i> Configuration Supplémentaire
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Type -->
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">
-                        Type de Maintenance <span class="text-red-500">*</span>
-                    </label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                            <i class='bx bx-category'></i>
-                        </span>
-                        <select name="type" required 
-                            class="pl-10 block w-full rounded-xl border-gray-200 bg-gray-50 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">— Choisir un type —</option>
-                            <option value="preventive" {{ old('type', $maintenancePlan->type) == 'preventive' ? 'selected' : '' }}>Préventive (Planifiée)</option>
-                            <option value="corrective" {{ old('type', $maintenancePlan->type) == 'corrective' ? 'selected' : '' }}>Corrective (Suite à panne)</option>
-                        </select>
-                    </div>
-                    @error('type') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                <!-- Interval en jours -->
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">
-                        Intervalle (jours)
-                    </label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                            <i class='bx bx-calendar'></i>
-                        </span>
-                        <input type="number" name="interval_jours" value="{{ old('interval_jours', $maintenancePlan->interval_jours) }}" 
-                            min="1" max="3650" placeholder="Ex: 30"
-                            class="pl-10 block w-full rounded-xl border-gray-200 bg-gray-50 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    @error('interval_jours') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
-                    <p class="text-xs text-gray-500 mt-1">Nombre de jours entre chaque maintenance</p>
-                </div>
+                <!-- Type (Hidden, always Preventive as requested) -->
+                <input type="hidden" name="type" value="preventive">
 
                 <!-- Technicien Assigné -->
                 <div>
@@ -398,24 +383,6 @@ document.addEventListener('DOMContentLoaded', function() {
             dropdown.classList.add('hidden');
         }
     });
-    // Date calculation logic
-    const intervalInput = document.querySelector('[name="interval_jours"]');
-    const lastDateInput = document.querySelector('[name="derniere_date"]');
-    const nextDateInput = document.querySelector('[name="prochaine_date"]');
-
-    function calculateNextDate() {
-        const lastDate = lastDateInput.value;
-        const interval = parseInt(intervalInput.value);
-
-        if (lastDate && !isNaN(interval)) {
-            const date = new Date(lastDate);
-            date.setDate(date.getDate() + interval);
-            nextDateInput.value = date.toISOString().split('T')[0];
-        }
-    }
-
-    intervalInput.addEventListener('input', calculateNextDate);
-    lastDateInput.addEventListener('change', calculateNextDate);
 });
 </script>
 @endpush

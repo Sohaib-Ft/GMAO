@@ -14,6 +14,18 @@ use App\Models\Notification;
 class User extends Authenticatable
 {
     use Notifiable, SoftDeletes;
+    
+    /**
+     * Obtenir l'URL de la photo de profil.
+     */
+    public function getProfilePhotoUrlAttribute()
+    {
+        if ($this->profile_photo_path) {
+            return asset('storage/' . $this->profile_photo_path);
+        }
+
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
+    }
 
     /**
      * Envoyez la notification de réinitialisation de mot de passe.
@@ -27,7 +39,7 @@ class User extends Authenticatable
     }
 
     protected $fillable = [
-        'name', 'email', 'password', 'role', 'is_active'
+        'name', 'email', 'password', 'role', 'is_active', 'profile_photo_path'
     ];
 
     protected $hidden = [

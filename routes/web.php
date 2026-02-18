@@ -155,6 +155,10 @@ Route::middleware(['auth'])->group(function () {
         // Technicien: Maintenance Plans
         Route::get('/technicien/maintenance-plans', [\App\Http\Controllers\Technician\MaintenancePlanController::class, 'index'])->name('technician.maintenance-plans.index');
         Route::post('/technicien/maintenance-plans/{maintenancePlan}/start', [\App\Http\Controllers\Technician\MaintenancePlanController::class, 'start'])->name('technician.maintenance-plans.start');
+
+
+        // Technicien: Dashboard avec maintenances planifiées
+        Route::get('/dashboard/maintenance', [\App\Http\Controllers\TechnicianDashboardController::class, 'index'])->name('dashboard.maintenance');
     });
 
     Route::middleware(['role:employe'])->group(function () {
@@ -179,6 +183,9 @@ Route::middleware(['auth'])->group(function () {
         // Employe: Localisations (lecture seule)
         Route::get('/localisations', [\App\Http\Controllers\Employee\LocalisationController::class, 'index'])->name('employee.localisations.index');
         Route::get('/localisations/{localisation}', [\App\Http\Controllers\Employee\LocalisationController::class, 'show'])->name('employee.localisations.show');
+
+        // Employe: Types d'équipements (lecture seule)
+        Route::get('/employee/equipment_types', [\App\Http\Controllers\Employee\EquipmentTypeController::class, 'index'])->name('employee.equipment_types.index');
     });
     
 

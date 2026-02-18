@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Services\RruleParser;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreMaintenancePlanRequest extends FormRequest
@@ -21,10 +22,28 @@ class StoreMaintenancePlanRequest extends FormRequest
     {
         return [
             'equipement_id' => ['required', 'integer', 'exists:equipements,id'],
+            'rrule' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (!RruleParser::isValidRrule($value)) {
+                        $fail('La règle de récurrence (RRULE) est invalide. Veuillez utiliser le configurateur.');
+                    }
+                    
+                    try {
+                        $parser = new RruleParser($value);
+                        
+                        // Pour WEEKLY, au moins un jour doit être sélectionné
+                        if ($parser->getFrequency() === 'WEEKLY' && empty($parser->getWeekdays())) {
+                            $fail('Veuillez sélectionner au moins un jour pour la récurrence hebdomadaire.');
+                        }
+                    } catch (\Exception $e) {
+                        $fail('Erreur lors de la validation de la règle de récurrence: ' . $e->getMessage());
+                    }
+                },
+            ],
             'type' => ['required', 'string', 'in:preventive,corrective'],
-            'frequence' => ['nullable', 'string', 'in:mensuelle,trimestrielle,annuelle'],
-            'interval_jours' => 'required|integer|min:1',
-            'prochaine_date' => 'nullable|date',
+            'interval_jours' => 'nullable|integer|min:1|max:3650',
             'statut' => 'required|in:actif,inactif',
             'technicien_id' => 'nullable|exists:users,id',
         ];
@@ -38,15 +57,13 @@ class StoreMaintenancePlanRequest extends FormRequest
         return [
             'equipement_id.required' => 'L\'équipement est obligatoire.',
             'equipement_id.exists' => 'L\'équipement sélectionné n\'existe pas.',
+            'rrule.required' => 'Veuillez configurer la règle de récurrence.',
             'type.required' => 'Le type de maintenance est obligatoire.',
             'type.in' => 'Le type doit être préventive ou corrective.',
-            'frequence.in' => 'La fréquence doit être mensuelle, trimestrielle ou annuelle.',
             'interval_jours.min' => 'L\'intervalle doit être au minimum 1 jour.',
             'interval_jours.max' => 'L\'intervalle ne peut pas dépasser 10 ans.',
-            'derniere_date.before_or_equal' => 'La dernière date ne peut pas être dans le futur.',
-            'prochaine_date.after_or_equal' => 'La prochaine date doit être dans le futur.',
             'statut.required' => 'Le statut est obligatoire.',
-            'statut.in' => 'Le statut doit être actif ou suspendu.',
+            'statut.in' => 'Le statut doit être actif ou inactif.',
         ];
     }
 

@@ -41,37 +41,15 @@
         <div class="flex flex-1 items-center max-w-2xl">
             <form action="{{ route('maintenance-plans.index') }}" method="GET" id="filterForm" class="flex flex-1 items-center gap-4">
                 <!-- Search Bar -->
-                <div class="relative flex-1">
+                <div class="relative w-full">
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                        <i class='bx bx-search text-xl'></i>
+                        <i class='bx bx-search'></i>
                     </span>
                     <input type="text" name="search" id="searchInput" value="{{ request('search') }}" 
-                        placeholder="Rechercher par équipement..." 
-                        class="w-full pl-10 pr-4 py-2 bg-gray-50 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                        autocomplete="off">
+                        placeholder="Rechercher par équipement ou code..." 
+                        class="pl-10 pr-10 w-full text-sm border-gray-200 bg-gray-50 rounded-xl focus:ring-blue-500 transition-all outline-none py-2.5">
                 </div>
 
-                <!-- Type Filter -->
-                <div class="flex items-center space-x-2 text-gray-500 min-w-[200px]">
-                    <i class='bx bx-filter'></i>
-                    <select name="type" id="typeFilter" 
-                        class="w-full text-sm border-none bg-gray-50 rounded-lg focus:ring-0 cursor-pointer hover:bg-gray-100 transition">
-                        <option value="">Tous les types</option>
-                        <option value="preventive" {{ request('type') == 'preventive' ? 'selected' : '' }}>Préventive</option>
-                        <option value="corrective" {{ request('type') == 'corrective' ? 'selected' : '' }}>Corrective</option>
-                    </select>
-                </div>
-
-                <!--    tus Filter -->
-                <div class="flex items-center space-x-2 text-gray-500 min-w-[200px]">
-                    <i class='bx bx-filter'></i>
-                    <select name="statut" id="statusFilter" 
-                        class="w-full text-sm border-none bg-gray-50 rounded-lg focus:ring-0 cursor-pointer hover:bg-gray-100 transition">
-                        <option value="">Tous les statuts</option>
-                        <option value="actif" {{ request('statut') == 'actif' ? 'selected' : '' }}>Actif</option>
-                        <option value="suspendu" {{ request('statut') == 'suspendu' ? 'selected' : '' }}>Suspendu</option>
-                    </select>
-                </div>
             </form>
         </div>
         <a href="{{ route('maintenance-plans.create') }}" class="group flex items-center px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200 font-medium">
@@ -90,7 +68,6 @@
                         <tr class="bg-gray-50 border-b border-gray-100 text-left">
                             <th class="px-8 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Équipement</th>
                             <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Type</th>
-                            <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Intervalle</th>
                             <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Technicien</th>
                             <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Prochaine Date</th>
                             <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
@@ -107,8 +84,8 @@
                                             </div>
                                         </div>
                                         <div class="ml-4">
-                                            <div class="text-sm font-bold text-gray-900">{{ $plan->equipement->code }}</div>
-                                            <div class="text-sm text-gray-500">{{ $plan->equipement->nom }}</div>
+                                            <div class="text-sm font-bold text-gray-900">{{ $plan->equipement->nom }}</div>
+                                            <div class="text-sm text-gray-500">{{ $plan->equipement->code }}</div>
                                         </div>
                                     </div>
                                 </td>
@@ -122,12 +99,6 @@
                                             Corrective
                                         </span>
                                     @endif
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <div class="flex items-center">
-                                        <i class='bx bx-calendar mr-2 text-gray-400'></i>
-                                        {{ $plan->interval_jours }} jours
-                                    </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     <div class="flex items-center">
@@ -260,24 +231,28 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         const searchInput = document.getElementById('searchInput');
-        const typeFilter = document.getElementById('typeFilter');
-        const statusFilter = document.getElementById('statusFilter');
         const form = document.getElementById('filterForm');
 
         function updateResults() {
             form.submit();
         }
 
-        // Debounce search input
-        let debounceTimer;
-        searchInput.addEventListener('input', function() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(updateResults, 300);
-        });
+        let timer;
+        const debounce = (fn, delay) => {
+            clearTimeout(timer);
+            timer = setTimeout(fn, delay);
+        };
 
-        // Instant filters
-        typeFilter.addEventListener('change', updateResults);
-        statusFilter.addEventListener('change', updateResults);
+        // Search input with debounce
+        if(searchInput) {
+            searchInput.addEventListener('input', () => debounce(updateResults, 400));
+            
+            // Focus at the end of text
+            const val = searchInput.value;
+            searchInput.value = '';
+            searchInput.value = val;
+            if(val) searchInput.focus();
+        }
     });
 </script>
 @endsection

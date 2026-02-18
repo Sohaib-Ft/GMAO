@@ -19,34 +19,49 @@
         
         <!-- Left Column: Summary & Info -->
         <div class="lg:col-span-1 space-y-8">
-            <!-- Profile Card -->
-            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-                <div class="h-32 bg-[#1e293b] relative">
-                    <div class="absolute -bottom-12 left-1/2 transform -translate-x-1/2">
-                        <div class="relative group">
-                            <div class="w-24 h-24 rounded-full border-4 border-white bg-blue-100 flex items-center justify-center overflow-hidden shadow-lg">
-                                <i class='bx bxs-user text-5xl text-blue-500'></i>
-                            </div>
-                            <button class="absolute bottom-0 right-0 bg-blue-600 text-white p-1.5 rounded-full shadow-lg hover:bg-blue-700 transition group-hover:scale-110">
-                                <i class='bx bxs-camera'></i>
+            <!-- Profile Card (Premium Design) -->
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 group/profile">
+                <!-- Banner / Header Sombre -->
+                <div class="h-32 bg-[#1e293b] relative"></div>
+                
+                <!-- Avatar Section -->
+                <div class="px-6 pb-8 text-center -mt-16 relative">
+                    <div class="relative inline-block">
+                        <div class="h-32 w-32 rounded-full border-4 border-white shadow-lg overflow-hidden bg-blue-50 mx-auto transition-transform group-hover/profile:scale-105 duration-500">
+                            <img src="{{ $user->profile_photo_url }}" 
+                                 alt="{{ $user->name }}"
+                                 class="h-full w-full object-cover"
+                                 id="profile-preview">
+                        </div>
+                        
+                        <!-- Camera Upload Button -->
+                        <form id="photo-upload-form" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            @method('PATCH')
+                            <input type="file" name="photo" id="photo-input" class="hidden" accept="image/*" onchange="previewAndSubmit(this)">
+                            
+                            <button type="button" 
+                                    onclick="document.getElementById('photo-input').click()"
+                                    class="absolute bottom-0 right-0 h-10 w-10 bg-blue-600 text-white rounded-full border-4 border-white flex items-center justify-center hover:bg-blue-700 transition shadow-md hover:scale-110 active:scale-95">
+                                <i class='bx bxs-camera text-lg'></i>
                             </button>
-                        </div>
+                        </form>
                     </div>
-                </div>
-                <div class="pt-16 pb-8 px-6 text-center">
-                    <h3 class="text-xl font-bold text-gray-800">{{ $user->name }}</h3>
-                    <p class="text-sm text-gray-500">{{ $user->email }}</p>
-                    
-                    <div class="mt-4 inline-flex items-center px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold uppercase tracking-wider">
-                        <i class='bx bxs-shield-alt mr-1'></i>
-                        {{ $user->role }}
+
+                    <div class="mt-4">
+                        <h3 class="text-xl font-black text-gray-900 leading-tight uppercase">{{ $user->name }}</h3>
+                        <p class="text-sm text-gray-500 font-medium">{{ $user->email }}</p>
                     </div>
-                    
-                    <div class="mt-8 border-t border-gray-50 pt-6">
-                        <div class="flex justify-between text-xs text-gray-500 mb-2">
-                            <span>Membre depuis :</span>
-                            <span class="font-bold text-gray-700">{{ $user->created_at->format('d/m/Y') }}</span>
-                        </div>
+
+                    <div class="mt-4 flex justify-center">
+                        <span class="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-600 uppercase tracking-widest border border-blue-100">
+                           <i class='bx bxs-shield-alt mr-1.5'></i> {{ $user->role }}
+                        </span>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-gray-50 flex items-center justify-between text-[11px]">
+                        <span class="text-gray-400 font-bold uppercase tracking-widest">Membre depuis :</span>
+                        <span class="text-gray-900 font-black">{{ $user->created_at->format('d/m/Y') }}</span>
                     </div>
                 </div>
             </div>
@@ -139,15 +154,27 @@
                 </form>
                 
                 <!-- Danger Zone Placeholder -->
-                <div class="mt-10 pt-8 border-t border-gray-100">
-                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Sécurité avancée</h4>
-                    <button disabled class="flex items-center text-red-400 font-bold opacity-50 cursor-not-allowed text-sm hover:text-red-500 transition">
-                        <i class='bx bx-log-out-circle mr-2'></i>
-                        Se déconnecter de tous les autres appareils (Bientôt disponible)
-                    </button>
-                </div>
+            
             </div>
         </div>
     </div>
 </div>
+@push('scripts')
+<script>
+function previewAndSubmit(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('profile-preview').src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+        
+        // Auto-submit the form after a tiny delay to show the preview
+        setTimeout(() => {
+            input.form.submit();
+        }, 300);
+    }
+}
+</script>
+@endpush
 @endsection

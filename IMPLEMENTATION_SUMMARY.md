@@ -289,6 +289,211 @@ php artisan test --filter=AssetCodeGeneratorTest
 
 ---
 
+# 📅 Générateur de Récurrence RRULE - Nouveau Module
+
+## ✅ Fichiers Créés/Modifiés
+
+### 1. Composant Blade
+- **`resources/views/components/rrule-generator.blade.php`** ✨ NOUVEAU
+  - Composant réutilisable Alpine.js + Tailwind
+  - Interface intuitive pour générer RRULE (RFC 5545)
+  - Support: Quotidien, Hebdomadaire, Mensuel, Annuel
+  - Résumé automatique en français
+  - Copie facile du code
+
+### 2. Service de Parsing
+- **`app/Services/RruleParser.php`** ✨ NOUVEAU
+  - Parser et validateur RRULE
+  - Conversion en résumés français
+  - Génération de prochaines occurrences
+  - Builder pour construire des RRULE
+  - Validation RFC 5545 stricte
+
+### 3. Configuration
+- **`config/rrule.php`** ✨ NOUVEAU
+  - Fréquences, jours, positions mensuels
+  - Présets personnalisables
+  - Contraintes de validation
+  - Support multilingue
+
+### 4. Validation Request
+- **`app/Http/Requests/StoreMaintenancePlanRequest.php`** ✏️ MODIFIÉ
+  - Validation RRULE intégrée
+  - Custom messages en français
+  - Sanitisation des inputs
+  - Support des deux formats (RRULE ou interval_jours)
+
+### 5. Vue de Création
+- **`resources/views/admin/maintenance_plans/create.blade.php`** ✏️ MODIFIÉ
+  - Intégration du composant RRULE
+  - Nouvelle section "Récurrence"
+  - Messages d'erreur personalisés
+
+### 6. Tests
+- **`tests/Unit/RruleParserTest.php`** ✨ NOUVEAU
+  - 20+ tests unitaires
+  - Validation RRULE
+  - Parsing des paramètres
+  - Résumés en français
+  - Génération d'occurrences
+
+### 7. Documentation
+- **`docs/RRULE_GENERATOR.md`** ✨ NOUVEAU - Documentation complète
+- **`docs/RRULE_INTEGRATION_GUIDE.md`** ✨ NOUVEAU - Guide d'intégration
+- **`docs/RRULE_README.md`** ✨ NOUVEAU - Vue d'ensemble
+- **`resources/views/admin/maintenance_plans/demo.blade.php`** ✨ NOUVEAU - Démo interactive
+
+## 📋 Fonctionnalités
+
+### Fréquences Supportées
+- ✅ **DAILY** - Quotidien (optionnel INTERVAL)
+- ✅ **WEEKLY** - Hebdomadaire (avec sélection jours)
+- ✅ **MONTHLY** - Mensuel (jour fixe ou relatif)
+- ✅ **YEARLY** - Annuel
+
+### Configuration Dynamique
+- **Hebdomadaire**: Sélecteur de 7 jours (L,M,M,J,V,S,D)
+- **Mensuel**: Deux options
+  - Le X du mois (1-31)
+  - Le Position Jour (1er/Dernier lundi, etc)
+- **Intervalle**: 1-99 (tous les N unités)
+
+### Résumés Automatiques
+- "Se répète chaque jour"
+- "Se répète le lundi, mercredi et vendredi"
+- "Se répète le 15 de chaque mois"
+- "Se répète le deuxième lundi de chaque mois"
+- "Se répète tous les 3 mois"
+
+### Sortie RRULE
+- `FREQ=DAILY`
+- `FREQ=WEEKLY;BYDAY=MO,WE,FR`
+- `FREQ=MONTHLY;BYMONTHDAY=15`
+- `FREQ=MONTHLY;BYDAY=2MO`
+- `FREQ=DAILY;INTERVAL=2`
+
+## 🎨 Design
+
+- **Stack**: Alpine.js + Tailwind CSS
+- **Style**: Minimaliste et Enterprise
+- **Couleurs**: Indigo/Bleu
+- **Icônes**: Boxicons
+- **Responsive**: Mobile-first
+
+## 🧪 Tests Inclus
+
+```bash
+# Exécuter tous les tests RRULE
+php artisan test tests/Unit/RruleParserTest.php
+
+# Ou avec PHPUnit
+./vendor/bin/phpunit tests/Unit/RruleParserTest.php
+```
+
+Tests disponibles:
+- ✅ Validation RRULE valides
+- ✅ Rejet RRULE invalides
+- ✅ Parsing fréquences
+- ✅ Parsing intervalles
+- ✅ Parsing jours/dates
+- ✅ Résumés en français (5+ cas)
+- ✅ Construction RRULE
+- ✅ Prochaines occurrences
+
+## 📚 Examples d'Utilisation
+
+### Dans une Vue
+```blade
+<x-rrule-generator 
+    name="rrule" 
+    :value="old('rrule')"
+    label="Récurrence"
+    :required="true"
+/>
+```
+
+### En Backend
+```php
+use App\Services\RruleParser;
+
+$rrule = 'FREQ=WEEKLY;BYDAY=MO,WE,FR';
+
+// Valider
+RruleParser::isValidRrule($rrule); // true
+
+// Parser
+$parser = new RruleParser($rrule);
+$parser->getFrequency();     // 'WEEKLY'
+$parser->getWeekdays();      // ['MO', 'WE', 'FR']
+$parser->toFrench();         // "Se répète le lundi, mercredi et vendredi"
+
+// Prochaines occurrences
+$occurrences = $parser->getNextOccurrences(now(), 10);
+```
+
+### En Validation Request
+```php
+'rrule' => [
+    'required',
+    'string',
+    function ($attribute, $value, $fail) {
+        if (!RruleParser::isValidRrule($value)) {
+            $fail('RRULE invalide');
+        }
+    }
+]
+```
+
+## 🔒 Sécurité
+
+- ✅ Validation stricte (regex RFC 5545)
+- ✅ Protection CSRF
+- ✅ Sanitisation inputs
+- ✅ Exception handling
+- ✅ Authorization checks
+
+## ⚙️ Configuration
+
+```php
+// config/rrule.php
+'frequencies' => [
+    'DAILY' => ['label' => 'Quotidien', ...],
+    // ... autres
+],
+
+'default_weekdays' => ['MO', 'WE', 'FR'],
+'default_interval' => 1,
+```
+
+## 🚀 Intégration Rapide
+
+```bash
+# 1. Les fichiers sont déjà créés et intégrés
+
+# 2. Exécuter une migration (si needed)
+php artisan migrate
+
+# 3. Vérifier l'intégration
+php artisan test
+
+# 4. Utiliser dans vos vues
+<x-rrule-generator name="rrule" />
+```
+
+## 📖 Documentation Complète
+
+- `docs/RRULE_GENERATOR.md` - Guide complet avec RFC 5545
+- `docs/RRULE_INTEGRATION_GUIDE.md` - Déploiement et intégration
+- `docs/RRULE_README.md` - Vue d'ensemble et quick start
+
+---
+
+**Date RRULE Module**: 17 février 2026  
+**Version RRULE**: 1.0.0  
+**Status**: ✅ Production Ready
+
+---
+
 **Date**: 2 février 2026  
 **Version**: 1.0  
 **Status**: ✅ Production Ready

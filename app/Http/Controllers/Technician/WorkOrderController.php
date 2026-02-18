@@ -40,6 +40,7 @@ class WorkOrderController extends Controller
         ]);
 
         $workOrder = WorkOrder::create([
+            'employe_id' => Auth::id(),
             'technicien_id' => Auth::id(),
             'equipement_id' => $request->equipement_id,
             'maintenance_plan_id' => $request->maintenance_plan_id,

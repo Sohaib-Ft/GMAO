@@ -67,16 +67,21 @@ class MaintenancePlanController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreMaintenancePlanRequest $request)
+    public function store(Request $request)
     {
-        $validated = $request->validated();
+        $validated = $request->validate([
+            'equipement_id' => 'required|exists:equipements,id',
+            'type' => 'required|in:preventive',
+            'rrule' => 'nullable|string',
+            'interval_jours' => 'nullable|integer|min:1',
+            'technicien_id' => 'required|exists:users,id',
+            'statut' => 'required|in:actif,inactif',
+        ]);
 
-        // Calculate next date if not provided
-        if (empty($validated['prochaine_date']) && !empty($validated['interval_jours'])) {
-            $validated['prochaine_date'] = now()->addDays((int)$validated['interval_jours']);
-        }
-
-        MaintenancePlan::create($validated);
+        $plan = MaintenancePlan::create($validated);
+        
+        // Initial next date calculation
+        $plan->updateNextDate(now());
 
         return redirect()->route('maintenance-plans.index')
             ->with('status', 'Plan de maintenance créé avec succès.');
@@ -110,11 +115,23 @@ class MaintenancePlanController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateMaintenancePlanRequest $request, MaintenancePlan $maintenancePlan)
+    public function update(Request $request, MaintenancePlan $maintenancePlan)
     {
-        $validated = $request->validated();
+        $validated = $request->validate([
+            'equipement_id' => 'required|exists:equipements,id',
+            'type' => 'required|in:preventive',
+            'rrule' => 'nullable|string',
+            'interval_jours' => 'nullable|integer|min:1',
+            'technicien_id' => 'required|exists:users,id',
+            'statut' => 'required|in:actif,inactif',
+        ]);
 
         $maintenancePlan->update($validated);
+        
+        // Refresh next date if rrule was changed
+        if ($maintenancePlan->wasChanged('rrule') || $maintenancePlan->wasChanged('interval_jours')) {
+             $maintenancePlan->updateNextDate(now());
+        }
 
         return redirect()->route('maintenance-plans.index')
             ->with('status', 'Plan de maintenance mis à jour avec succès.');

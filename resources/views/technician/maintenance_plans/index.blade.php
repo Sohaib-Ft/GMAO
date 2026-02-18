@@ -5,161 +5,234 @@
 
 @section('content')
 <div class="space-y-6">
+@php
+    $now = $currentDate ?? now();
+    $weeks = [];
+    $firstDay = $now->copy()->startOfMonth()->startOfWeek();
+    $lastDay = $now->copy()->endOfMonth()->endOfWeek();
+    
+    $current = $firstDay->copy();
+    while ($current <= $lastDay) {
+        $weeks[] = [
+            'start' => $current->copy(),
+            'days' => array_map(fn($i) => $current->copy()->addDays($i), range(0, 6))
+        ];
+        $current->addWeek();
+    }
+@endphp
 
-    <!-- Header Actions (Matching admin.users.index style) -->
-    <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-        <div class="flex flex-1 items-center max-w-2xl">
-            <form action="{{ route('technician.maintenance-plans.index') }}" method="GET" id="filterForm" class="flex flex-1 items-center gap-4">
-                <!-- Search Bar -->
-                <div class="relative flex-1">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                        <i class='bx bx-search text-xl'></i>
-                    </span>
-                    <input type="text" name="search" id="searchInput" value="{{ request('search') }}" 
-                        placeholder="Rechercher par équipement..." 
-                        class="w-full pl-10 pr-4 py-2 bg-gray-50 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                        autocomplete="off">
+    <!-- Header Actions -->
+    <!-- Header Actions Removed (Search & Filter) -->
+    <!-- Calendar View -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Calendar -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+                <!-- Calendar Header -->
+                <div class="bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <a href="?month={{ $now->copy()->subMonth()->month }}&year={{ $now->copy()->subMonth()->year }}" 
+                           class="px-4 py-2 rounded-lg hover:bg-white/20 transition flex items-center gap-2">
+                            <i class='bx bx-chevron-left text-xl'></i>
+                        </a>
+                        
+                        <h3 class="text-xl font-bold text-center">
+                            <i class='bx bx-calendar mr-2'></i>
+                            {{ $now->format('F Y') }}
+                        </h3>
+                        
+                        <a href="?month={{ $now->copy()->addMonth()->month }}&year={{ $now->copy()->addMonth()->year }}" 
+                           class="px-4 py-2 rounded-lg hover:bg-white/20 transition flex items-center gap-2">
+                            <i class='bx bx-chevron-right text-xl'></i>
+                        </a>
+                    </div>
                 </div>
 
-                <!-- Type Filter -->
-                <div class="flex items-center space-x-2 text-gray-500 min-w-[200px]">
-                    <i class='bx bx-filter'></i>
-                    <select name="type" id="typeFilter" onchange="this.form.submit()"
-                        class="w-full text-sm border-none bg-gray-50 rounded-lg focus:ring-0 cursor-pointer hover:bg-gray-100 transition">
-                        <option value="">Tous les types</option>
-                        <option value="preventive" {{ request('type') == 'preventive' ? 'selected' : '' }}>Préventive</option>
-                        <option value="corrective" {{ request('type') == 'corrective' ? 'selected' : '' }}>Corrective</option>
-                    </select>
+                <!-- Calendar Grid -->
+                <div class="p-4 sm:p-6">
+                    <!-- Days Header -->
+                    <div class="grid grid-cols-7 gap-1 mb-2">
+                        @foreach(['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] as $day)
+                            <div class="p-2 text-center font-bold text-indigo-700 text-xs sm:text-sm bg-indigo-50 rounded">
+                                {{ $day }}
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <!-- Days Grid -->
+                    @foreach($weeks as $week)
+                        <div class="grid grid-cols-7 gap-1 mb-1">
+                            @foreach($week['days'] as $day)
+                                @php
+                                    $dateKey = $day->format('Y-m-d');
+                                    $items = $maintenanceByDate[$dateKey] ?? [];
+                                    $isToday = $day->format('Y-m-d') === now()->format('Y-m-d');
+                                    $isCurrentMonth = $day->month === $now->month;
+                                @endphp
+                                
+                                <div class="aspect-square p-1 sm:p-2 rounded-lg border transition hover:shadow-lg cursor-pointer group relative min-h-[60px]
+                                    @if($isToday)
+                                        bg-green-50 border-2 border-green-500 ring-2 ring-green-200
+                                    @elseif(!$isCurrentMonth)
+                                        bg-gray-50 border-gray-200
+                                    @else
+                                        bg-white border-gray-200
+                                    @endif
+                                    @if(count($items) > 0)
+                                        hover:bg-indigo-50
+                                    @endif">
+                                    
+                                    <!-- Day Number -->
+                                    <p class="text-xs sm:text-sm font-bold mb-1
+                                        @if($isToday)
+                                            text-green-700
+                                        @elseif(!$isCurrentMonth)
+                                            text-gray-400
+                                        @else
+                                            text-gray-700
+                                        @endif">
+                                        {{ $day->format('d') }}
+                                    </p>
+
+                                    <!-- Maintenance Indicators -->
+                                    @if(count($items) > 0)
+                                        <div class="flex flex-wrap gap-0.5">
+                                            @foreach(array_slice($items, 0, 3) as $item)
+                                                <div class="w-2 h-2 rounded-full
+                                                    @if($item['plan']->type === 'preventive')
+                                                        bg-blue-500
+                                                    @else
+                                                        bg-orange-500
+                                                    @endif"></div>
+                                            @endforeach
+                                            @if(count($items) > 3)
+                                                <span class="text-[8px] text-gray-600 font-bold">+{{ count($items) - 3 }}</span>
+                                            @endif
+                                        </div>
+
+                                        <!-- Tooltip on Hover -->
+                                        <div class="hidden group-hover:block absolute left-0 top-full mt-1 z-50 bg-gray-900 text-white text-xs rounded-lg p-3 whitespace-nowrap shadow-xl min-w-max">
+                                            <div class="font-bold mb-2">{{ count($items) }} maintenance(s)</div>
+                                            @foreach(array_slice($items, 0, 5) as $item)
+                                                <div class="text-[10px] mb-1 flex items-center gap-1">
+                                                    <div class="w-1.5 h-1.5 rounded-full
+                                                        @if($item['plan']->type === 'preventive')
+                                                            bg-blue-400
+                                                        @else
+                                                            bg-orange-400
+                                                        @endif"></div>
+                                                    {{ $item['plan']->equipement->nom }}
+                                                </div>
+                                            @endforeach
+                                            @if(count($items) > 5)
+                                                <div class="text-[10px] text-gray-400 mt-1">et {{ count($items) - 5 }} de plus...</div>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @endforeach
+
+                    <!-- Legend -->
+                    <div class="flex items-center justify-center gap-4 sm:gap-6 mt-6 pt-4 border-t border-gray-200 text-xs sm:text-sm flex-wrap">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                            <span class="text-gray-700">Préventive</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 bg-green-500 rounded-full border-2 border-green-700"></div>
+                            <span class="text-gray-700">Aujourd'hui</span>
+                        </div>
+                    </div>
                 </div>
-            </form>
+            </div>
         </div>
-    </div>
 
-    <!-- Maintenance Plans Table (Matching admin.users.index structure) -->
-    <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead>
-                    <tr class="bg-gray-50 border-b border-gray-100 text-left">
-                        <th class="px-8 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Équipement</th>
-                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Localisation</th>
-                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Type</th>
-                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Prochaine Échéance</th>
-                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-50">
+        <!-- Sidebar: Upcoming Maintenance List -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 sticky top-6">
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3">
+                    <h4 class="font-bold text-sm flex items-center">
+                        <i class='bx bx-list-ul mr-2'></i>
+                        Prochaines Maintenances
+                    </h4>
+                </div>
+                <div class="divide-y divide-gray-100 max-h-[600px] overflow-y-auto">
                     @forelse($plans as $plan)
                         @php
-                            $prochaine = \Carbon\Carbon::parse($plan->prochaine_date);
+                            $planModel = is_array($plan) ? $plan['plan'] : $plan;
+                            $planDate = is_array($plan) ? $plan['date'] : $planModel->prochaine_date;
+                            $planType = is_array($plan) ? $plan['type'] : $planModel->type;
+                            $planWorkOrder = is_array($plan) ? ($plan['activeWorkOrder'] ?? null) : $planModel->activeWorkOrder;
+                            $prochaine = \Carbon\Carbon::parse($planDate);
                             $isLate = $prochaine->isPast();
                             $isSoon = !$isLate && $prochaine->diffInDays(now()) <= 7;
                         @endphp
-                        <tr class="hover:bg-gray-50/50 transition group">
-                            <td class="px-8 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10">
-                                        <div class="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm border-2 border-white shadow-sm group-hover:scale-110 transition-transform">
-                                            <i class='bx bx-wrench'></i>
-                                        </div>
-                                    </div>
-                                    <div class="ml-4">
-                                        <div class="text-sm font-bold text-gray-900">{{ $plan->equipement->nom }}</div>
-                                        <div class="text-xs text-gray-500">{{ $plan->equipement->code }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center text-sm text-gray-600 font-bold italic">
-                                    <i class='bx bx-map-pin mr-2 text-gray-400'></i>
-                                    {{ $plan->equipement->localisationRelation->name ?? 'N/A' }}
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                @if($plan->type === 'preventive')
-                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                        Préventive
-                                    </span>
-                                @else
-                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
-                                        Corrective
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex flex-col">
-                                    <div class="flex items-center text-sm font-bold {{ $isLate ? 'text-red-600' : ($isSoon ? 'text-amber-600' : 'text-gray-900') }}">
-                                        <i class='bx bx-calendar mr-2 text-gray-400'></i>
-                                        {{ $prochaine->format('d/m/Y') }}
-                                 
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <div class="flex items-center justify-end">
-                                    @if($plan->activeWorkOrder)
-                                        @php
-                                            $canFinish = true;
-                                            $deadline = $plan->prochaine_date;
-                                            if ($deadline && $deadline->isFuture()) {
-                                                $canFinish = false;
-                                            }
-                                        @endphp
-                                        <form action="{{ route('technician.workorders.complete', $plan->activeWorkOrder) }}" method="POST">
-                                            @csrf
-                                            <button type="submit" 
-                                                @if(!$canFinish) disabled @endif
-                                                class="px-4 py-2 {{ $canFinish ? 'bg-green-600 hover:bg-green-700 shadow-green-100' : 'bg-gray-400 cursor-not-allowed' }} text-white rounded-xl text-xs font-bold transition shadow-lg flex items-center gap-2">
-                                                <i class='bx {{ $canFinish ? 'bx-check-circle' : 'bx-lock-alt' }}'></i>
-                                                Terminer
-                                                @if(!$canFinish)
-                                                    <span class="text-[9px] opacity-75">({{ $deadline->format('d/m') }})</span>
-                                                @endif
-                                            </button>
-                                        </form>
+                        <div class="p-3 hover:bg-gray-50 transition">
+                            <div class="flex items-start gap-2">
+                                <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg
+                                    @if($planType === 'preventive')
+                                        bg-blue-100 text-blue-600
                                     @else
-                                        @php
-                                            $canStart = true;
-                                            $startDate = $plan->prochaine_date;
-                                            // Can only start if date is today or past
-                                            if ($startDate && $startDate->isFuture() && !$startDate->isToday()) {
-                                                $canStart = false;
-                                            }
-                                        @endphp
-                                        <form action="{{ route('technician.maintenance-plans.start', $plan) }}" method="POST">
-                                            @csrf
-                                            <button type="submit" 
-                                                @if(!$canStart) disabled @endif
-                                                class="px-4 py-2 {{ $canStart ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-100' : 'bg-gray-400 cursor-not-allowed opacity-50' }} text-white rounded-xl text-xs font-bold transition shadow-lg flex items-center gap-2">
-                                                <i class='bx {{ $canStart ? 'bx-play-circle' : 'bx-time-five' }}'></i>
-                                                {{ $canStart ? 'Démarrer' : 'En attente' }}
-                                                @if(!$canStart)
-                                                    <span class="text-[9px] opacity-75">({{ $startDate->format('d/m') }})</span>
-                                                @endif
-                                            </button>
-                                        </form>
-                                    @endif
+                                        bg-orange-100 text-orange-600
+                                    @endif">
+                                    <i class='bx bx-wrench'></i>
                                 </div>
-                            </td>
-                        </tr>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-bold text-gray-900 truncate">{{ $planModel->equipement->nom }}</p>
+                                    <p class="text-xs text-gray-500">{{ $planModel->equipement->code }}</p>
+                                    <p class="text-xs mt-1 font-medium {{ $isLate ? 'text-red-600' : ($isSoon ? 'text-amber-600' : 'text-gray-600') }}">
+                                        <i class='bx bx-calendar'></i>
+                                        {{ $prochaine->format('d/m/Y') }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="mt-2 text-xs font-mono text-blue-600 bg-blue-50 px-2 py-0.5 rounded flex items-center gap-1 w-fit mb-2">
+                                <i class='bx bx-repeat'></i>
+                                Occurrence
+                            </div>
+                            <div class="mt-2">
+                                @if($planWorkOrder)
+                                    @php
+                                        $canFinish = !$prochaine->isFuture();
+                                    @endphp
+                                    <form action="{{ route('technician.workorders.complete', $planWorkOrder) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" 
+                                            @if(!$canFinish) disabled @endif
+                                            class="w-full px-3 py-1.5 {{ $canFinish ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed' }} text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1">
+                                            <i class='bx bx-check-circle'></i>
+                                            Terminer
+                                        </button>
+                                    </form>
+                                @else
+                                    @php
+                                        $canStart = !($prochaine->isFuture() && !$prochaine->isToday());
+                                    @endphp
+                                    <form action="{{ route('technician.maintenance-plans.start', $planModel) }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="date" value="{{ $prochaine->format('Y-m-d') }}">
+                                        <button type="submit" 
+                                            @if(!$canStart) disabled @endif
+                                            class="w-full px-3 py-1.5 {{ $canStart ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed' }} text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1">
+                                            <i class='bx bx-play-circle'></i>
+                                            {{ $canStart ? 'Démarrer' : 'En attente' }}
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        </div>
                     @empty
-                        <tr>
-                            <td colspan="5" class="px-8 py-12 text-center">
-                                <div class="flex flex-col items-center justify-center text-gray-400">
-                                    <i class='bx bx-calendar-x text-6xl mb-4 opacity-20'></i>
-                                    <p class="font-semibold">Aucun planning trouvé</p>
-                                </div>
-                            </td>
-                        </tr>
+                        <div class="p-8 text-center">
+                            <i class='bx bx-calendar-x text-4xl text-gray-300 mb-2'></i>
+                            <p class="text-sm text-gray-500">Aucune maintenance</p>
+                        </div>
                     @endforelse
-                </tbody>
-            </table>
+                </div>
+            </div>
         </div>
-        
-        <!-- Pagination -->
-        @if($plans->hasPages())
-        <div class="px-8 py-4 border-t border-gray-100 bg-gray-50">
-            {{ $plans->appends(request()->query())->links() }}
-        </div>
-        @endif
     </div>
+
 </div>
 @endsection

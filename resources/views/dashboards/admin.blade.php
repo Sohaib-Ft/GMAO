@@ -314,29 +314,36 @@
             </div>
         </div>
 
-        <!-- Profil Overview (À côté du tableau) -->
+        <!-- Profil Overview (Version Épurée) -->
         <div class="space-y-6 lg:mt-11">
-            <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm border-t-4 border-t-blue-600">
+            <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm border-t-4 border-t-blue-600 relative group transition-all hover:shadow-md">
+                <a href="{{ route('profile.edit') }}" class="absolute top-4 right-4 h-8 w-8 bg-gray-50 text-gray-400 rounded-lg flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 transition shadow-sm" title="Modifier le profil">
+                    <i class='bx bx-edit-alt text-lg'></i>
+                </a>
+                
                 <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Administrateur</h3>
+                
                 <div class="flex items-center gap-4 mb-6">
-                    <div class="h-14 w-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
-                        <i class='bx bxs-user-circle text-4xl'></i>
+                    <div class="h-16 w-16 rounded-2xl overflow-hidden border-2 border-blue-50 bg-blue-50 flex items-center justify-center shadow-sm">
+                        <img src="{{ Auth::user()->profile_photo_url }}" 
+                             alt="{{ Auth::user()->name }}"
+                             class="h-full w-full object-cover">
                     </div>
                     <div>
                         <div class="font-bold text-gray-900 text-lg leading-tight uppercase">{{ Auth::user()->name }}</div>
                         <div class="text-xs text-gray-500 font-medium">{{ Auth::user()->email }}</div>
                     </div>
                 </div>
+
                 <div class="pt-4 border-t border-gray-50 space-y-3">
                      <div class="flex items-center justify-between text-xs">
-                        <span class="text-gray-400 font-bold uppercase uppercase tracking-widest"></span>
-                        <span class="font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-0.5 rounded-md"> AdminISTRATEUR</span>
+                        <span class="text-gray-400 font-bold uppercase tracking-widest">Rôle</span>
+                        <span class="font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-0.5 rounded-md"> ADMINISTRATEUR</span>
                      </div>
                 </div>
             </div>
             
             <!-- Quick Link / Shortcut -->
-
         </div>
     </div>
 </div>

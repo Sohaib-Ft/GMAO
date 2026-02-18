@@ -17,6 +17,110 @@
         </div>
     </div>
 
+    {{-- ===== DEADLINE ALERTS CARD ===== --}}
+    @php
+        $alertPlans = \App\Models\MaintenancePlan::with('equipement')
+            ->where('technicien_id', auth()->id())
+            ->where('statut', 'actif')
+            ->whereNotNull('prochaine_date')
+            ->whereDate('prochaine_date', '<=', now()->addDays(7))
+            ->orderBy('prochaine_date')
+            ->get();
+    @endphp
+
+    @if($alertPlans->isNotEmpty())
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden border-l-4 border-l-red-500">
+        {{-- Card Header --}}
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-50 bg-gray-50/30">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 bg-red-100 rounded-xl flex items-center justify-center text-red-600">
+                    <i class='bx bx-bell bx-tada text-xl'></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-gray-900">Rappel</h3>
+                    <p class="text-[10px] text-gray-400 font-medium">{{ $alertPlans->count() }} maintenance{{ $alertPlans->count() > 1 ? 's' : '' }} à surveiller</p>
+                </div>
+            </div>
+            <a href="{{ route('technician.maintenance-plans.index') }}"
+               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 transition">
+                <i class='bx bx-right-arrow-alt'></i> Voir tout
+            </a>
+        </div>
+
+        {{-- Alert Items --}}
+        <div class="divide-y divide-gray-50">
+            @foreach($alertPlans as $alertPlan)
+            @php
+                $dueDate   = \Carbon\Carbon::parse($alertPlan->prochaine_date)->startOfDay();
+                $today     = now()->startOfDay();
+                $daysLeft  = $today->diffInDays($dueDate, false);
+
+                if ($daysLeft < 0) {
+                    $dotColor   = 'bg-red-500';
+                    $badgeBg    = 'bg-red-100 text-red-700';
+                    $message    = 'En retard de ' . abs($daysLeft) . ' jour' . (abs($daysLeft) > 1 ? 's' : '');
+                    $emoji      = '⚠️';
+                } elseif ($daysLeft === 0) {
+                    $dotColor   = 'bg-red-500 animate-pulse';
+                    $badgeBg    = 'bg-red-100 text-red-700';
+                    $message    = "Prévu aujourd'hui";
+                    $emoji      = '🔴';
+                } elseif ($daysLeft <= 3) {
+                    $dotColor   = 'bg-orange-500';
+                    $badgeBg    = 'bg-orange-100 text-orange-700';
+                    $message    = 'Dans ' . $daysLeft . ' jour' . ($daysLeft > 1 ? 's' : '');
+                    $emoji      = '🟠';
+                } else {
+                    $dotColor   = 'bg-yellow-500';
+                    $badgeBg    = 'bg-yellow-100 text-yellow-700';
+                    $message    = 'Dans ' . $daysLeft . ' jours';
+                    $emoji      = '🟡';
+                }
+            @endphp
+            <div class="flex items-center gap-4 px-6 py-3.5 hover:bg-gray-50/50 transition-colors">
+                {{-- Status dot --}}
+                <div class="shrink-0 h-3 w-3 rounded-full {{ $dotColor }}"></div>
+
+                {{-- Equipment info --}}
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-gray-900 truncate">
+                        {{ $emoji }} {{ $alertPlan->equipement->nom ?? 'Équipement inconnu' }}
+                    </p>
+                    <p class="text-xs text-gray-400 mt-0.5">
+                        Prévu le {{ $dueDate->translatedFormat('d F Y') }}
+                    </p>
+                </div>
+
+                {{-- Countdown badge --}}
+                <span class="shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider {{ $badgeBg }}">
+                    {{ $message }}
+                </span>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+     <!-- 2. Graphe Central (Pleine Largeur) -->
+    <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition duration-300">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h4 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <i class='bx bx-bar-chart-alt-2 text-indigo-600'></i>
+                    Mes Interventions Mensuelles
+                </h4>
+                <p class="text-xs text-gray-500 font-medium mt-1">Évolution de votre productivité en {{ date('Y') }}</p>
+            </div>
+            <div class="hidden md:flex items-center gap-2">
+                <span class="h-3 w-3 bg-indigo-600 rounded-full"></span>
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Terminées</span>
+            </div>
+        </div>
+        <div class="h-64 md:h-80">
+            <canvas id="technicianMonthlyChart"></canvas>
+        </div>
+    </div>
+
+
      <!-- 3. Stats Grid (Pleine Largeur) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         <!-- À faire -->
@@ -85,28 +189,6 @@
         </div>
     </div>
 
-
-    <!-- 2. Graphe Central (Pleine Largeur) -->
-    <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition duration-300">
-        <div class="flex items-center justify-between mb-8">
-            <div>
-                <h4 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    <i class='bx bx-bar-chart-alt-2 text-indigo-600'></i>
-                    Mes Interventions Mensuelles
-                </h4>
-                <p class="text-xs text-gray-500 font-medium mt-1">Évolution de votre productivité en {{ date('Y') }}</p>
-            </div>
-            <div class="hidden md:flex items-center gap-2">
-                <span class="h-3 w-3 bg-indigo-600 rounded-full"></span>
-                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Terminées</span>
-            </div>
-        </div>
-        <div class="h-64 md:h-80">
-            <canvas id="technicianMonthlyChart"></canvas>
-        </div>
-    </div>
-
-   
     <!-- 4. Section Basse : Tableau & Profil (Cote à Cote) -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Tableau des Tâches (Large) -->
@@ -181,26 +263,122 @@
                     </table>
                 </div>
             </div>
+
+            <!-- 5. Prochaines Maintenances Préventives -->
+            <div class="flex items-center justify-between px-2 pt-6">
+                <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <i class='bx bx-calendar-check text-purple-600'></i>
+                    Prochaines Maintenances Préventives
+                </h2>
+                <a href="{{ route('technician.maintenance-plans.index') }}" class="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-100 rounded-xl text-xs font-bold text-purple-600 hover:bg-gray-50 hover:text-purple-700 transition shadow-sm">
+                    <i class='bx bx-list-ul text-sm'></i>
+                    Voir Tout
+                </a>
+            </div>
+
+            <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-gray-50/50">
+                                <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Équipement</th>
+                                <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Intervalle</th>
+                                <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">Prévu le</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            @forelse($upcomingMaintenance as $plan)
+                            <tr class="hover:bg-gray-50 transition-colors group">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-4">
+                                        <div class="h-10 w-10 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                                            <i class='bx bx-wrench text-xl'></i>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-gray-900 text-sm italic group-not-italic">{{ $plan['plan']->equipement->nom ?? 'Inconnu' }}</div>
+                                            <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">CODE: {{ $plan['plan']->equipement->code ?? 'N/A' }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800">
+                                        @if($plan['plan']->rrule)
+                                            RRULE
+                                        @else
+                                            {{ $plan['plan']->interval_jours }} jours
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    @php
+                                        $date = \Carbon\Carbon::parse($plan['date']);
+                                        $isToday = $date->isToday();
+                                        $isTomorrow = $date->isTomorrow();
+                                        $canStart = ($date->isPast() || $date->isToday());
+                                    @endphp
+                                    <div class="flex items-center justify-end gap-4">
+                                        <div class="text-right">
+                                            <div class="text-sm font-bold {{ $isToday ? 'text-green-600' : ($isTomorrow ? 'text-blue-600' : 'text-gray-900') }}">
+                                                {{ $isToday ? "Aujourd'hui" : ($isTomorrow ? "Demain" : $date->translatedFormat('d F Y')) }}
+                                            </div>
+                                            <div class="text-[10px] text-gray-400 font-medium">
+                                                {{ $date->diffForHumans() }}
+                                            </div>
+                                        </div>
+                                        
+                                        <form action="{{ route('technician.maintenance-plans.start', $plan['plan']) }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="date" value="{{ $date->format('Y-m-d') }}">
+                                            <button type="submit" 
+                                                @if(!$canStart) disabled @endif
+                                                class="px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition
+                                                {{ $canStart ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-sm' : 'bg-gray-100 text-gray-400 cursor-not-allowed' }}">
+                                                {{ $canStart ? 'Démarrer' : 'Attente' }}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="3" class="px-6 py-12 text-center opacity-40">
+                                    <p class="text-sm font-bold text-gray-400 uppercase tracking-widest uppercase tracking-widest">Aucune maintenance prévue</p>
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <!-- Profil & Liens Sidebar (À côté du tableau) -->
         <div class="space-y-6 lg:mt-11">
              <!-- Profile Card -->
-            <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm border-t-4 border-t-indigo-600">
+            <!-- Profil Overview (Version Épurée) -->
+            <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm border-t-4 border-t-indigo-600 relative group transition-all hover:shadow-md">
+                <a href="{{ route('profile.edit') }}" class="absolute top-4 right-4 h-8 w-8 bg-gray-50 text-gray-400 rounded-lg flex items-center justify-center hover:bg-indigo-50 hover:text-indigo-600 transition shadow-sm" title="Modifier le profil">
+                    <i class='bx bx-edit-alt text-lg'></i>
+                </a>
+
                 <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Votre Profil</h3>
+                
                 <div class="flex items-center gap-4 mb-6">
-                    <div class="h-14 w-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
-                        <i class='bx bxs-user-circle text-4xl'></i>
+                    <div class="h-16 w-16 rounded-2xl overflow-hidden border-2 border-indigo-50 bg-indigo-50 flex items-center justify-center shadow-sm">
+                        <img src="{{ Auth::user()->profile_photo_url }}" 
+                             alt="{{ Auth::user()->name }}"
+                             class="h-full w-full object-cover">
                     </div>
                     <div>
-                        <div class="font-bold text-gray-900 text-lg leading-tight uppercase leading-tight">{{ Auth::user()->name }}</div>
-                        <div class="text-xs text-gray-500 font-medium font-medium">{{ Auth::user()->email }}</div>
+                        <div class="font-bold text-gray-900 text-lg leading-tight uppercase">{{ Auth::user()->name }}</div>
+                        <div class="text-xs text-gray-500 font-medium">{{ Auth::user()->email }}</div>
                     </div>
                 </div>
+
                 <div class="pt-4 border-t border-gray-50">
                      <div class="flex items-center justify-between text-xs">
-                        <span class="text-gray-400 font-bold uppercase uppercase tracking-widest"></span>
-                        <span class="font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-md uppercase tracking-widest">Technicien</span>
+                        <span class="text-gray-400 font-bold uppercase tracking-widest">Rôle</span>
+                        <span class="font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-md">TECHNICIEN</span>
                      </div>
                 </div>
             </div>
