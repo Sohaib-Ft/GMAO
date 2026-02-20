@@ -1,3 +1,4 @@
+@component('mail::message')
 <!DOCTYPE html>
 <html>
 <head>

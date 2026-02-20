@@ -110,39 +110,7 @@
                 </div>
 
                 <!-- Intervention History -->
-                <div class="md:col-span-2 space-y-4">
-                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center">
-                        <i class='bx bx-history mr-2 text-lg'></i> Historique des Interventions
-                    </h3>
-                    <div class="space-y-3">
-                        @forelse($workOrder->interventions as $intervention)
-                            <div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl">
-                                <div class="flex justify-between items-start mb-2">
-                                    <div class="flex flex-col">
-                                        <span class="text-sm font-bold text-gray-900">{{ $intervention->titre ?? 'Intervention' }}</span>
-                                        <span class="text-xs text-blue-600 font-medium flex items-center mt-1">
-                                            <i class='bx bx-user mr-1'></i> {{ $intervention->technicien->name ?? 'Technicien inconnu' }}
-                                        </span>
-                                    </div>
-                                    <div class="flex flex-col items-end">
-                                        <span class="text-xs text-gray-500">{{ $intervention->created_at->format('d/m/Y H:i') }}</span>
-                                        @if($intervention->duree)
-                                            <span class="text-[10px] font-bold text-gray-400 mt-1 flex items-center uppercase tracking-tighter">
-                                                <i class='bx bx-time-five mr-1'></i> {{ $intervention->duree }} min
-                                            </span>
-                                        @endif
-                                    </div>
-                                </div>
-                                <p class="text-sm text-gray-600 italic mt-2">"{{ $intervention->description }}"</p>
-                            </div>
-                        @empty
-                            <div class="p-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                                <p class="text-sm text-gray-400 italic">Aucune intervention enregistrée pour le moment.</p>
-                            </div>
-                        @endforelse
-                    </div>
-                </div>
-
+                
                 <!-- Actions -->
                 <div class="md:col-span-2 flex flex-wrap gap-4 pt-6 border-t border-gray-100">
                     <a href="{{ route('admin.workorders.edit', $workOrder) }}" class="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200 flex items-center gap-2">

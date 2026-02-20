@@ -54,15 +54,19 @@ class MaintenancePlanController extends Controller
         // Group plans by date for calendar display
         $maintenanceByDate = [];
         $recurrenceService = new \App\Services\RecurrenceService();
-        $startOfMonth = $currentDate->copy()->startOfMonth()->startOfWeek();
-        $endOfMonth = $currentDate->copy()->endOfMonth()->endOfWeek();
+        $startOfMonth = $currentDate->copy()->startOfMonth()->subMonths(1); // Fetch more for smooth scrolling
+        $endOfMonth = $currentDate->copy()->endOfMonth()->addMonths(2);
+        
+        $calendarEvents = [];
 
         foreach ($allPlans as $plan) {
             if ($plan->rrule) {
-                // Generer TOUTES les occurrences pour ce mois
+                // Generer les occurrences pour la plage étendue
                 $occurrences = $recurrenceService->getOccurrencesBetween($plan->rrule, $plan->prochaine_date ?? now(), $endOfMonth);
                 foreach ($occurrences as $occurrence) {
                     $dateKey = $occurrence->format('Y-m-d');
+                    
+                    // Traditional group for potential fallback or other uses
                     if (!isset($maintenanceByDate[$dateKey])) {
                         $maintenanceByDate[$dateKey] = [];
                     }
@@ -70,9 +74,29 @@ class MaintenancePlanController extends Controller
                         'plan' => $plan,
                         'date' => $occurrence,
                     ];
+
+                    // FullCalendar Event Format
+                    $calendarEvents[] = [
+                        'id' => $plan->id . '_' . $occurrence->timestamp,
+                        'title' => $plan->equipement->nom,
+                        'start' => $occurrence->toIso8601String(),
+                        'allDay' => true,
+                        'className' => $plan->type === 'preventive' ? 'event-preventive' : 'event-corrective',
+                        'extendedProps' => [
+                            'plan_id' => $plan->id,
+                            'equipement' => $plan->equipement->nom,
+                            'type' => ucfirst($plan->type),
+                            'description' => $plan->description,
+                            'date' => $occurrence->format('d/m/Y'),
+                            'hasWorkOrder' => (bool)$plan->activeWorkOrder,
+                            'canStart' => !($occurrence->isFuture() && !$occurrence->isToday()),
+                            'finishUrl' => $plan->activeWorkOrder ? route('technician.workorders.complete', $plan->activeWorkOrder) : null,
+                            'startUrl' => route('technician.maintenance-plans.start', $plan),
+                            'occurrenceDate' => $occurrence->format('Y-m-d'),
+                        ]
+                    ];
                 }
             } elseif ($plan->prochaine_date) {
-                // Fallback classique si pas de RRULE
                 $dateKey = $plan->prochaine_date->format('Y-m-d');
                 if (!isset($maintenanceByDate[$dateKey])) {
                     $maintenanceByDate[$dateKey] = [];
@@ -81,6 +105,26 @@ class MaintenancePlanController extends Controller
                     'plan' => $plan,
                     'date' => $plan->prochaine_date,
                 ];
+
+                $calendarEvents[] = [
+                    'id' => $plan->id,
+                    'title' => $plan->equipement->nom,
+                    'start' => $plan->prochaine_date->toIso8601String(),
+                    'allDay' => true,
+                    'className' => $plan->type === 'preventive' ? 'event-preventive' : 'event-corrective',
+                    'extendedProps' => [
+                        'plan_id' => $plan->id,
+                        'equipement' => $plan->equipement->nom,
+                        'type' => ucfirst($plan->type),
+                        'description' => $plan->description,
+                        'date' => $plan->prochaine_date->format('d/m/Y'),
+                        'hasWorkOrder' => (bool)$plan->activeWorkOrder,
+                        'canStart' => !($plan->prochaine_date->isFuture() && !$plan->prochaine_date->isToday()),
+                        'finishUrl' => $plan->activeWorkOrder ? route('technician.workorders.complete', $plan->activeWorkOrder) : null,
+                        'startUrl' => route('technician.maintenance-plans.start', $plan),
+                        'occurrenceDate' => $plan->prochaine_date->format('Y-m-d'),
+                    ]
+                ];
             }
         }
 
@@ -88,8 +132,6 @@ class MaintenancePlanController extends Controller
         $plansList = [];
         foreach ($allPlans as $plan) {
             if ($plan->rrule) {
-                // Pour la liste, on ne prend que la TOUTE PROCHAINE occurrence (>= aujourd'hui)
-                // On commence la recherche à partir de maintenant ou prochaine_date (la plus éloignée pour éviter le passé)
                 $searchStart = $plan->prochaine_date && $plan->prochaine_date->isFuture() ? $plan->prochaine_date : now();
                 $occurrences = $recurrenceService->getOccurrencesBetween($plan->rrule, $searchStart, now()->addMonth());
                 
@@ -118,7 +160,7 @@ class MaintenancePlanController extends Controller
         usort($plansList, fn($a, $b) => $a['date']->timestamp <=> $b['date']->timestamp);
         $plans = collect($plansList)->take(30);
 
-        return view('technician.maintenance_plans.index', compact('plans', 'maintenanceByDate', 'currentDate'));
+        return view('technician.maintenance_plans.index', compact('plans', 'maintenanceByDate', 'currentDate', 'calendarEvents'));
     }
 
     /**

@@ -62,21 +62,23 @@
         </div>
     </div>
 
-    <!-- Calendars Container -->
+    <!-- Calendars Container (FullCalendar) -->
     <div id="calendars-container" class="space-y-6">
-        @foreach($calendars as $calendar)
-            <x-maintenance-calendar 
-                :data="$calendar"
-                :previousUrl="route('maintenance-calendar', array_merge(request()->query(), [
-                    'month' => ($calendar['month'] - 1 ?: 12),
-                    'year' => ($calendar['month'] === 1 ? $calendar['year'] - 1 : $calendar['year'])
-                ]))"
-                :nextUrl="route('maintenance-calendar', array_merge(request()->query(), [
-                    'month' => ($calendar['month'] % 12) + 1,
-                    'year' => ($calendar['month'] === 12 ? $calendar['year'] + 1 : $calendar['year'])
-                ]))"
-            />
-        @endforeach
+        <div class="bg-white rounded-xl shadow border border-gray-200 p-4">
+            <div class="mb-4 flex items-center justify-between">
+                <h2 class="text-lg font-bold">Vue calendrier</h2>
+                <div class="flex items-center gap-2">
+                    <select id="fc-view-select" class="rounded-lg border-gray-300 bg-gray-50 px-2 py-1">
+                        <option value="dayGridMonth">Mois</option>
+                        <option value="timeGridWeek">Semaine</option>
+                        <option value="timeGridDay">Jour</option>
+                        <option value="listWeek">Liste</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="maintenance-calendar"></div>
+        </div>
     </div>
 
     <!-- List View -->
@@ -174,9 +176,89 @@
 
 </div>
 
+@push('styles')
+<!-- FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
+<style>
+    .fc {
+        font-family: inherit;
+    }
+
+    .fc .fc-toolbar {
+        margin-bottom: 0.75rem;
+    }
+
+    .fc .fc-toolbar-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: rgb(31 41 55);
+    }
+
+    .fc .fc-button {
+        background: white;
+        border: 1px solid rgb(209 213 219);
+        color: rgb(55 65 81);
+        text-transform: none;
+        font-weight: 500;
+        box-shadow: none;
+    }
+
+    .fc .fc-button:hover,
+    .fc .fc-button:focus,
+    .fc .fc-button.fc-button-active {
+        background: rgb(243 244 246);
+        border-color: rgb(156 163 175);
+        color: rgb(17 24 39);
+        box-shadow: none;
+    }
+
+    .fc-theme-standard .fc-scrollgrid,
+    .fc-theme-standard td,
+    .fc-theme-standard th {
+        border-color: rgb(229 231 235);
+    }
+
+    .fc .fc-col-header-cell {
+        background: rgb(249 250 251);
+        color: rgb(107 114 128);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+
+    .fc .fc-daygrid-day-number {
+        color: rgb(55 65 81);
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 0.35rem;
+    }
+
+    .fc .fc-day-today {
+        background: rgb(239 246 255) !important;
+    }
+
+    .fc .fc-event {
+        border: none;
+        border-radius: 4px;
+        padding: 0 4px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        background: rgb(22 163 74);
+        color: white;
+    }
+
+    .fc .fc-list-event:hover td {
+        background: rgb(243 244 246);
+    }
+</style>
+@endpush
+
 @push('scripts')
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Filters behavior (kept)
     const filterEquipement = document.getElementById('filter-equipement');
     const filterTechnicien = document.getElementById('filter-technicien');
     const filterType = document.getElementById('filter-type');
@@ -197,8 +279,101 @@ document.addEventListener('DOMContentLoaded', function() {
     filterTechnicien.addEventListener('change', updateFilters);
     filterType.addEventListener('change', updateFilters);
     calendarView.addEventListener('change', updateFilters);
+
+    // Build events from server-provided upcomingMaintenance
+    @php
+        $fcEvents = collect($upcomingMaintenance ?? [])->map(function($m){
+            $start = \Carbon\Carbon::parse($m['date'])->toIso8601String();
+            $title = isset($m['equipement']) ? ($m['equipement']->nom ?? 'Maintenance') : ($m['plan']->description ?? 'Maintenance');
+            return [
+                'title' => $title,
+                'start' => $start,
+                'allDay' => false,
+                'extendedProps' => [
+                    'plan' => isset($m['plan']) ? ['id' => ($m['plan']->id ?? null), 'description' => ($m['plan']->description ?? null)] : null,
+                    'equipement' => isset($m['equipement']) ? ['id' => ($m['equipement']->id ?? null), 'nom' => ($m['equipement']->nom ?? null)] : null,
+                ],
+            ];
+        })->values()->all();
+    @endphp
+
+    const events = @json($fcEvents);
+
+    // Initialize FullCalendar
+    const calendarEl = document.getElementById('maintenance-calendar');
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        locale: 'fr',
+        firstDay: 1,
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'today prev,next',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+        },
+        buttonText: {
+            today: "Aujourd'hui",
+            month: 'Mois',
+            week: 'Semaine',
+            day: 'Jour',
+            list: 'Liste'
+        },
+        dayMaxEventRows: 3,
+        fixedWeekCount: false,
+        navLinks: true,
+        nowIndicator: true,
+        height: 650,
+        events: events,
+        eventClick: function(info) {
+            const ev = info.event;
+            const props = ev.extendedProps || {};
+            const plan = props.plan || {};
+            const equip = props.equipement || {};
+
+            // Fill modal
+            document.getElementById('event-modal-title').textContent = ev.title;
+            document.getElementById('event-modal-date').textContent = new Date(ev.start).toLocaleString();
+            document.getElementById('event-modal-desc').textContent = plan.description || '';
+            document.getElementById('event-modal-equip').textContent = equip.nom || '';
+
+            // Show modal
+            document.getElementById('event-modal').classList.remove('hidden');
+        }
+    });
+
+    calendar.render();
+
+    // View select control
+    const viewSelect = document.getElementById('fc-view-select');
+    viewSelect.addEventListener('change', function() {
+        calendar.changeView(this.value);
+    });
+
+    viewSelect.value = 'dayGridMonth';
+
+    // Modal close
+    document.getElementById('event-modal-close').addEventListener('click', function() {
+        document.getElementById('event-modal').classList.add('hidden');
+    });
 });
 </script>
 @endpush
+
+<!-- Event modal -->
+<div id="event-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-black/50"></div>
+    <div class="bg-white rounded-lg shadow-lg p-6 z-10 w-full max-w-md">
+        <div class="flex items-start justify-between">
+            <div>
+                <h3 id="event-modal-title" class="text-lg font-bold"></h3>
+                <p id="event-modal-date" class="text-sm text-gray-600 mt-1"></p>
+            </div>
+            <button id="event-modal-close" class="text-gray-500 hover:text-gray-700">✕</button>
+        </div>
+        <div class="mt-4">
+            <p id="event-modal-desc" class="text-gray-700"></p>
+            <p class="text-sm text-gray-500 mt-2">Équipement: <span id="event-modal-equip" class="font-medium"></span></p>
+        </div>
+    </div>
+</div>
 
 @endsection

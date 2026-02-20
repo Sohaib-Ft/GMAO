@@ -122,9 +122,11 @@ class WorkOrderController extends Controller
      */
     public function history()
     {
+        // Exclude work orders created from maintenance plans (préventive)
         $workOrders = WorkOrder::with(['equipement'])
             ->where('technicien_id', Auth::id())
             ->where('statut', 'terminee')
+            ->whereNull('maintenance_plan_id')
             ->latest()
             ->paginate(10);
 
